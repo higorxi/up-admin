@@ -18,8 +18,9 @@ export default function ProfissionaisIndicadosPage() {
           </Link>
         </Button>
       </div>
-
+      <div className="h-screen overflow-hidden">
       <ProfissionaisIndicadosList />
+      </div>
     </div>
   )
 }

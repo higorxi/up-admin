@@ -18,7 +18,7 @@ import { lojasService } from "@/services/lojas-service"
 import { motion } from "framer-motion"
 import { UserPlus, MapPin, User, Link as LinkIcon } from "lucide-react"
 
-const diasDaSemana = [
+export const diasDaSemana = [
   { id: "SUNDAY", label: "Domingo" },
   { id: "MONDAY", label: "Segunda-feira" },
   { id: "TUESDAY", label: "Terça-feira" },

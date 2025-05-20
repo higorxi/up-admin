@@ -70,7 +70,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="hidden border-r bg-gray-100/40 dark:bg-gray-800/40 lg:block lg:w-64">
+    <div className="hidden lg:block fixed top-0 left-0 w-64 h-screen border-r bg-gray-100/40 dark:bg-gray-800/40 z-50">
       <div className="flex h-full flex-col">
         <div className="flex h-14 items-center border-b px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -113,8 +113,9 @@ export function Sidebar() {
                         asChild
                       >
                         <Link href={subItem.href}>
-                        <subItem.icon className="h-4 w-4" />
-                        {subItem.title}</Link>
+                          <subItem.icon className="h-4 w-4" />
+                          {subItem.title}
+                        </Link>
                       </Button>
                     ))}
                   </div>
@@ -133,3 +134,4 @@ export function Sidebar() {
     </div>
   );
 }
+

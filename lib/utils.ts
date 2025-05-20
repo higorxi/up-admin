@@ -1,3 +1,4 @@
+import { diasDaSemana } from "@/components/profissionais-indicados/profissional-indicado-form";
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -16,3 +17,10 @@ export function formatDate(dateString: string | Date): string {
     minute: '2-digit',
   }).format(date);
 }
+
+export function getDayLabelById(id: string): string {
+  const day = diasDaSemana.find((d) => d.id === id.toUpperCase());
+  return day ? day.label : id;
+}
+
+export default diasDaSemana;
