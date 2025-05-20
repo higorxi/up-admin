@@ -85,8 +85,8 @@ export function ProfissionaisIndicadosList() {
     if (!profissionalParaDesativar) return
 
     try {
-      await profissionaisService.desativarProfissional(profissionalParaDesativar)
-      setProfissionais(profissionais.map((p) => (p.id === profissionalParaDesativar ? { ...p, status: "Inativo" } : p)))
+      await profissionaisService.alterarStatusProfissionalIndicado(profissionalParaDesativar)
+      setProfissionais(profissionais.map((p) => (p.id === profissionalParaDesativar ? { ...p, isActive: false } : p)))
       toast({
         title: "Profissional desativado",
         description: "O profissional foi desativado com sucesso.",
@@ -104,8 +104,8 @@ export function ProfissionaisIndicadosList() {
 
   const handleAtivar = async (id: string) => {
     try {
-      await profissionaisService.ativarProfissional(id)
-      setProfissionais(profissionais.map((p) => (p.id === id ? { ...p, status: "Aprovado" } : p)))
+      await profissionaisService.alterarStatusProfissionalIndicado(id)
+      setProfissionais(profissionais.map((p) => (p.id === id ? { ...p, isActive: true } : p)))
       toast({
         title: "Profissional ativado",
         description: "O profissional foi ativado com sucesso.",
@@ -119,7 +119,6 @@ export function ProfissionaisIndicadosList() {
     }
   }
 
-  // Renderização para dispositivos móveis
   const renderMobileCard = (profissional: ProfissionalIndicado) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -248,7 +247,6 @@ export function ProfissionaisIndicadosList() {
         </Collapsible>
       </div>
 
-      {/* Exibição para dispositivos móveis */}
       <div className="md:hidden">
         {filteredProfissionais.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">Nenhum profissional indicado encontrado.</div>
@@ -257,7 +255,6 @@ export function ProfissionaisIndicadosList() {
         )}
       </div>
 
-      {/* Exibição para desktop */}
       <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>

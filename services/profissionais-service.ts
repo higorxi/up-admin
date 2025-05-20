@@ -222,16 +222,28 @@ class ProfissionaisService {
     }
   }
 
-    async cadastrarProfissionalIndicado(dados: Partial<ProfissionalIndicado>): Promise<ProfissionalIndicado> {
-      try {
-        const response = await apiClient.post<ProfissionalIndicado>('/listed-professionals', dados);
-  
-        return response
-      } catch (error) {
-        console.error("Erro ao cadastrar profissional:", error)
-        throw error
-      }
+  async cadastrarProfissionalIndicado(dados: Partial<ProfissionalIndicado>): Promise<ProfissionalIndicado> {
+    try {
+      const response = await apiClient.post<ProfissionalIndicado>('/listed-professionals', dados);
+
+      return response
+    } catch (error) {
+      console.error("Erro ao cadastrar profissional:", error)
+      throw error
     }
+  }
+
+  async alterarStatusProfissionalIndicado(id: string): Promise<void> {
+    try {
+   
+      const response = await apiClient.patch(`/listed-professionals/toggle-status/${id}`, {});
+      console.log('response', response);
+      return;
+    } catch (error) {
+      console.error(`Erro ao desativar profissional com ID ${id}:`, error)
+      throw error
+    }
+  }
 
   async obterProfissionalPorId(id: string): Promise<Profissional | null> {
     try {
@@ -357,26 +369,6 @@ class ProfissionaisService {
       return mockProfissionais.filter((p) => p.lojaId === lojaId)
     } catch (error) {
       console.error(`Erro ao listar profissionais da loja ${lojaId}:`, error)
-      throw error
-    }
-  }
-
-  // Desativar profissional
-  async desativarProfissional(id: string): Promise<void> {
-    try {
-      // Quando a API estiver pronta, descomente o código abaixo
-      // await apiClient.patch(`/profissionais/${id}/desativar`, {});
-
-      // Simulando desativação para desenvolvimento
-      console.log(`Profissional ${id} desativado`)
-
-      // Atualizar o status no mock para desenvolvimento
-      const index = mockProfissionais.findIndex((p) => p.id === id)
-      if (index !== -1) {
-        mockProfissionais[index].status = "Inativo"
-      }
-    } catch (error) {
-      console.error(`Erro ao desativar profissional com ID ${id}:`, error)
       throw error
     }
   }
