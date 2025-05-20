@@ -1,6 +1,7 @@
 // Vamos melhorar o serviço de lojas para incluir mais funcionalidades
 
-import type { Endereco } from "./profissionais-service"
+import { apiClient } from "@/lib/api-client"
+import type { Endereco, Profissional } from "./profissionais-service"
 import { profissionaisService } from "./profissionais-service"
 
 // Tipos
@@ -174,6 +175,18 @@ class LojasService {
       return novaLoja
     } catch (error) {
       console.error("Erro ao cadastrar loja:", error)
+      throw error
+    }
+  }
+
+
+//Listar Loja Parceira Pendente
+  async listarProfissionaisPendentes(): Promise<Profissional[]> {
+    try {
+      const response = await apiClient.get<Profissional[]>('/partner-supplier/pending');
+      return response
+    } catch (error) {
+      console.error("Erro ao listar profissionais pendentes:", error)
       throw error
     }
   }

@@ -29,7 +29,7 @@ const sidebarNavItems = [
 
   {
     title: "Profissionais Indicados",
-    href: "/profissionais/indicados",
+    href: "/profissionais-indicados",
     icon: PartyPopper,
   },
   {

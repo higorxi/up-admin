@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input"
 import { MoreHorizontal, Search, Edit, Eye, CheckCircle, XCircle, Filter } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { profissionaisService } from "@/services/profissionais-service"
+import { profissionaisService, ProfissionalIndicado } from "@/services/profissionais-service"
 import { toast } from "@/components/ui/use-toast"
 import Link from "next/link"
 import {
@@ -40,13 +40,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Label } from "@/components/ui/label"
+import { formatDate } from "@/lib/utils"
 
 export function ProfissionaisIndicadosList() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [profissionais, setProfissionais] = useState([])
+  const [profissionais, setProfissionais] = useState<ProfissionalIndicado[]>([])
   const [loading, setLoading] = useState(true)
-  const [profissionalSelecionado, setProfissionalSelecionado] = useState(null)
-  const [profissionalParaDesativar, setProfissionalParaDesativar] = useState(null)
+  const [profissionalSelecionado, setProfissionalSelecionado] = useState<ProfissionalIndicado | null>(null)
+  const [profissionalParaDesativar, setProfissionalParaDesativar] = useState<string | null>(null)
   const [filtrosAbertos, setFiltrosAbertos] = useState(false)
   const [filtroStatus, setFiltroStatus] = useState("todos")
   const [filtroEspecialidade, setFiltroEspecialidade] = useState("todas")
@@ -70,22 +71,14 @@ export function ProfissionaisIndicadosList() {
     carregarProfissionais()
   }, [])
 
-  // Extrair especialidades únicas para o filtro
-  const especialidades = ["todas", ...new Set(profissionais.map((p) => p.especialidade.toLowerCase()))]
+  const especialidades = ["todas"]
 
   const filteredProfissionais = profissionais.filter((profissional) => {
     const matchesSearch =
-      profissional.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      profissional.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      profissional.especialidade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (profissional.indicadoPor && profissional.indicadoPor.toLowerCase().includes(searchTerm.toLowerCase()))
+      profissional.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (profissional.email?.toLowerCase() || "").includes(searchTerm.toLowerCase())
 
-    const matchesStatus = filtroStatus === "todos" || profissional.status.toLowerCase() === filtroStatus.toLowerCase()
-
-    const matchesEspecialidade =
-      filtroEspecialidade === "todas" || profissional.especialidade.toLowerCase() === filtroEspecialidade.toLowerCase()
-
-    return matchesSearch && matchesStatus && matchesEspecialidade
+      return matchesSearch
   })
 
   const handleDesativar = async () => {
@@ -109,7 +102,7 @@ export function ProfissionaisIndicadosList() {
     }
   }
 
-  const handleAtivar = async (id) => {
+  const handleAtivar = async (id: string) => {
     try {
       await profissionaisService.ativarProfissional(id)
       setProfissionais(profissionais.map((p) => (p.id === id ? { ...p, status: "Aprovado" } : p)))
@@ -127,7 +120,7 @@ export function ProfissionaisIndicadosList() {
   }
 
   // Renderização para dispositivos móveis
-  const renderMobileCard = (profissional) => (
+  const renderMobileCard = (profissional: ProfissionalIndicado) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -139,39 +132,29 @@ export function ProfissionaisIndicadosList() {
         <CardContent className="p-0">
           <div className="p-4 border-b flex items-center gap-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={profissional.avatar || "/placeholder.svg"} alt={profissional.nome} />
-              <AvatarFallback>{profissional.nome.charAt(0)}</AvatarFallback>
+
+              <AvatarFallback>{profissional.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h3 className="font-medium">{profissional.nome}</h3>
+              <h3 className="font-medium">{profissional.name}</h3>
               <p className="text-xs text-muted-foreground">{profissional.email}</p>
             </div>
             <Badge
-              variant={
-                profissional.status === "Aprovado"
-                  ? "success"
-                  : profissional.status === "Pendente"
-                    ? "warning"
-                    : profissional.status === "Inativo"
-                      ? "secondary"
-                      : "destructive"
-              }
+              variant={profissional.isActive ? "success" : "secondary"}
             >
-              {profissional.status}
+              {profissional.isActive ? 'Ativo' : 'Inativo'}
             </Badge>
           </div>
           <div className="p-4 grid grid-cols-2 gap-2 text-sm">
             <div className="font-medium">Especialidade:</div>
-            <div>{profissional.especialidade}</div>
-            <div className="font-medium">Indicado por:</div>
-            <div>{profissional.indicadoPor}</div>
+            <div>{profissional.profession}</div>
           </div>
           <div className="p-4 pt-0 flex justify-between items-center">
             <Button variant="outline" size="sm" onClick={() => setProfissionalSelecionado(profissional)}>
               <Eye className="mr-2 h-4 w-4" />
               Detalhes
             </Button>
-            {profissional.status === "Inativo" ? (
+            {!profissional.isActive ? (
               <Button variant="outline" size="sm" onClick={() => handleAtivar(profissional.id)}>
                 <CheckCircle className="mr-2 h-4 w-4" />
                 Ativar
@@ -281,7 +264,6 @@ export function ProfissionaisIndicadosList() {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Especialidade</TableHead>
-              <TableHead>Indicado Por</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-[80px]"></TableHead>
             </TableRow>
@@ -299,30 +281,20 @@ export function ProfissionaisIndicadosList() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={profissional.avatar || "/placeholder.svg"} alt={profissional.nome} />
-                        <AvatarFallback>{profissional.nome.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{profissional.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-medium">{profissional.nome}</span>
+                        <span className="font-medium">{profissional.name}</span>
                         <span className="text-xs text-muted-foreground">{profissional.email}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{profissional.especialidade}</TableCell>
-                  <TableCell>{profissional.indicadoPor}</TableCell>
+                  <TableCell>{profissional.profession}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={
-                        profissional.status === "Aprovado"
-                          ? "success"
-                          : profissional.status === "Pendente"
-                            ? "warning"
-                            : profissional.status === "Inativo"
-                              ? "secondary"
-                              : "destructive"
-                      }
+                      variant={profissional.isActive ? "success" : "secondary"}
                     >
-                      {profissional.status}
+                      {profissional.isActive ? 'Ativo' : 'Inativo'}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -341,12 +313,12 @@ export function ProfissionaisIndicadosList() {
                           Ver detalhes
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/profissionais/${profissional.id}`}>
+                          <Link href={`/profissionais-indicados/${profissional.id}`}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </Link>
                         </DropdownMenuItem>
-                        {profissional.status === "Inativo" ? (
+                        {!profissional.isActive ? (
                           <DropdownMenuItem onClick={() => handleAtivar(profissional.id)}>
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Ativar
@@ -380,14 +352,10 @@ export function ProfissionaisIndicadosList() {
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex flex-col items-center">
                   <Avatar className="h-24 w-24 mb-2">
-                    <AvatarImage
-                      src={profissionalSelecionado.avatar || "/placeholder.svg"}
-                      alt={profissionalSelecionado.nome}
-                    />
-                    <AvatarFallback>{profissionalSelecionado.nome.charAt(0)}</AvatarFallback>
+                    <AvatarFallback>{profissionalSelecionado.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <h3 className="text-lg font-semibold">{profissionalSelecionado.nome}</h3>
-                  <p className="text-sm text-muted-foreground">{profissionalSelecionado.especialidade}</p>
+                  <h3 className="text-lg font-semibold">{profissionalSelecionado.name}</h3>
+                  <p className="text-sm text-muted-foreground">{profissionalSelecionado.profession}</p>
                   <Badge className="mt-2" variant="outline">
                     Profissional Indicado
                   </Badge>
@@ -400,54 +368,38 @@ export function ProfissionaisIndicadosList() {
                     </div>
                     <div>
                       <h4 className="text-sm font-medium">Telefone</h4>
-                      <p>{profissionalSelecionado.telefone}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">Documento</h4>
-                      <p>{profissionalSelecionado.documento}</p>
+                      <p>{profissionalSelecionado.phone}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium">Data de cadastro</h4>
-                      <p>{profissionalSelecionado.dataCadastro}</p>
+                      <p>{formatDate(profissionalSelecionado.createdAt)}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium">Status</h4>
                       <Badge
-                        variant={
-                          profissionalSelecionado.status === "Aprovado"
-                            ? "success"
-                            : profissionalSelecionado.status === "Pendente"
-                              ? "warning"
-                              : profissionalSelecionado.status === "Inativo"
-                                ? "secondary"
-                                : "destructive"
-                        }
+                        variant={profissionalSelecionado.isActive ? "success" : "secondary"}
                       >
-                        {profissionalSelecionado.status}
+                        {profissionalSelecionado.isActive ? 'Ativo' : 'Inativo'}
                       </Badge>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium">Indicado por</h4>
-                      <p>{profissionalSelecionado.indicadoPor}</p>
                     </div>
                   </div>
 
-                  {profissionalSelecionado.biografia && (
+                  {profissionalSelecionado.description && (
                     <div>
                       <h4 className="text-sm font-medium">Biografia</h4>
-                      <p className="text-sm p-3 border rounded-md bg-muted/30">{profissionalSelecionado.biografia}</p>
+                      <p className="text-sm p-3 border rounded-md bg-muted/30">{profissionalSelecionado.description}</p>
                     </div>
                   )}
 
-                  {profissionalSelecionado.endereco && (
+                  {profissionalSelecionado.state && (
                     <div>
                       <h4 className="text-sm font-medium">Endereço</h4>
                       <p className="text-sm p-3 border rounded-md bg-muted/30">
-                        {profissionalSelecionado.endereco.rua}, {profissionalSelecionado.endereco.numero}
-                        {profissionalSelecionado.endereco.complemento &&
-                          `, ${profissionalSelecionado.endereco.complemento}`}{" "}
-                        - {profissionalSelecionado.endereco.bairro}, {profissionalSelecionado.endereco.cidade}/
-                        {profissionalSelecionado.endereco.estado} - CEP: {profissionalSelecionado.endereco.cep}
+                        {profissionalSelecionado.street}, {profissionalSelecionado.number}
+                        {profissionalSelecionado.complement &&
+                          `, ${profissionalSelecionado.complement}`}{" "}
+                        - {profissionalSelecionado.district}, {profissionalSelecionado.city}/
+                        {profissionalSelecionado.state} - CEP: {profissionalSelecionado.zipCode}
                       </p>
                     </div>
                   )}
@@ -466,7 +418,7 @@ export function ProfissionaisIndicadosList() {
                 Editar
               </Link>
             </Button>
-            {profissionalSelecionado?.status === "Inativo" ? (
+            {profissionalSelecionado && !profissionalSelecionado.isActive ? (
               <Button
                 onClick={() => {
                   handleAtivar(profissionalSelecionado.id)
@@ -480,8 +432,10 @@ export function ProfissionaisIndicadosList() {
               <Button
                 variant="destructive"
                 onClick={() => {
-                  setProfissionalParaDesativar(profissionalSelecionado.id)
-                  setProfissionalSelecionado(null)
+                  if (profissionalSelecionado) {
+                    setProfissionalParaDesativar(profissionalSelecionado.id)
+                    setProfissionalSelecionado(null)
+                  }
                 }}
               >
                 <XCircle className="mr-2 h-4 w-4" />

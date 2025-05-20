@@ -1,4 +1,4 @@
-import { ProfissionaisIndicadosList } from "@/components/profissionais/profissionais-indicados-list"
+import { ProfissionaisIndicadosList } from "@/components/profissionais-indicados/profissionais-indicados-list"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
 import Link from "next/link"
@@ -12,7 +12,7 @@ export default function ProfissionaisIndicadosPage() {
           <p className="text-muted-foreground">Gerencie os profissionais indicados no sistema.</p>
         </div>
         <Button asChild>
-          <Link href="/profissionais/indicados/novo">
+          <Link href="/profissionais-indicados/novo">
             <PlusCircle className="mr-2 h-4 w-4" />
             Novo Profissional Indicado
           </Link>

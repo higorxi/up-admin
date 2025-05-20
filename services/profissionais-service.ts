@@ -31,7 +31,56 @@ export type Profissional = {
   motivoRejeicao?: string
 }
 
-// Dados mockados para desenvolvimento
+export enum WeekDay {
+  MONDAY = "MONDAY",
+  TUESDAY = "TUESDAY",
+  WEDNESDAY = "WEDNESDAY",
+  THURSDAY = "THURSDAY",
+  FRIDAY = "FRIDAY",
+  SATURDAY = "SATURDAY",
+  SUNDAY = "SUNDAY",
+}
+
+export type AvailableDay = {
+  id: string
+  dayOfWeek: WeekDay
+  listedProfessionalId: string
+}
+
+export type SocialMedia = {
+  id: string
+  whatsapp?: string
+  instagram?: string
+  linkedin?: string
+}
+
+export type ProfissionalIndicado = {
+  id: string
+  name: string
+  profession: string
+  description?: string | null
+  phone: string
+  email?: string | null
+
+  state: string
+  city: string
+  district: string
+  street?: string | null
+  number?: string | null
+  complement?: string | null
+  zipCode?: string | null
+
+  socialMedia?: SocialMedia | null
+  socialMediaId?: string | null
+
+  availableDays: AvailableDay[]
+
+  isActive: boolean;
+
+  createdAt: Date
+  updatedAt: Date
+}
+
 const mockProfissionais: Profissional[] = [
   {
     id: "1",
@@ -146,7 +195,6 @@ const mockProfissionais: Profissional[] = [
   },
 ]
 
-// Serviço para gerenciar profissionais
 class ProfissionaisService {
   // Listar todos os profissionais
   async listarProfissionais(): Promise<Profissional[]> {
@@ -162,37 +210,29 @@ class ProfissionaisService {
     }
   }
 
-  // Listar profissionais pendentes de aprovação
-  async listarProfissionaisPendentes(): Promise<Profissional[]> {
+  async listarProfissionaisIndicados(): Promise<ProfissionalIndicado[]> {
     try {
-      console.log('oi')
-      // Quando a API estiver pronta, descomente o código abaixo
-      const response = await apiClient.get<Profissional[]>('/partner-supplier/pending');
+  
+      const response =  await apiClient.get<ProfissionalIndicado[]>('/listed-professionals');
 
-      // Usando dados mockados para desenvolvimento
-      console.log('response', response);
-      return response
-    } catch (error) {
-      console.error("Erro ao listar profissionais pendentes:", error)
-      throw error
-    }
-  }
-
-  // Listar profissionais indicados
-  async listarProfissionaisIndicados(): Promise<Profissional[]> {
-    try {
-      // Quando a API estiver pronta, descomente o código abaixo
-      // return await apiClient.get<Profissional[]>('/profissionais/indicados');
-
-      // Usando dados mockados para desenvolvimento
-      return mockProfissionais.filter((p) => p.indicado === true)
+      return response;
     } catch (error) {
       console.error("Erro ao listar profissionais indicados:", error)
       throw error
     }
   }
 
-  // Obter profissional por ID
+    async cadastrarProfissionalIndicado(dados: Partial<ProfissionalIndicado>): Promise<ProfissionalIndicado> {
+      try {
+        const response = await apiClient.post<ProfissionalIndicado>('/listed-professionals', dados);
+  
+        return response
+      } catch (error) {
+        console.error("Erro ao cadastrar profissional:", error)
+        throw error
+      }
+    }
+
   async obterProfissionalPorId(id: string): Promise<Profissional | null> {
     try {
       // Quando a API estiver pronta, descomente o código abaixo
@@ -210,19 +250,11 @@ class ProfissionaisService {
   // Cadastrar novo profissional
   async cadastrarProfissional(dados: Omit<Profissional, "id" | "status" | "dataCadastro">): Promise<Profissional> {
     try {
-      // Quando a API estiver pronta, descomente o código abaixo
-      // return await apiClient.post<Profissional>('/profissionais', dados);
+      const response = await apiClient.post<Profissional>('/profissionais', dados);
 
-      // Simulando cadastro para desenvolvimento
       console.log("Profissional cadastrado:", dados)
 
-      // Simulando resposta da API
-      return {
-        id: Math.random().toString(36).substring(2, 9),
-        ...dados,
-        status: "Pendente",
-        dataCadastro: new Date().toLocaleDateString(),
-      }
+      return response
     } catch (error) {
       console.error("Erro ao cadastrar profissional:", error)
       throw error

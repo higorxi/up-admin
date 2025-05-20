@@ -10,55 +10,61 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { profissionaisService } from "@/services/profissionais-service"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
 import { lojasService } from "@/services/lojas-service"
 import { motion } from "framer-motion"
-import { UserPlus, MapPin, User } from "lucide-react"
+import { UserPlus, MapPin, User, Link as LinkIcon } from "lucide-react"
+
+const diasDaSemana = [
+  { id: "SUNDAY", label: "Domingo" },
+  { id: "MONDAY", label: "Segunda-feira" },
+  { id: "TUESDAY", label: "Terça-feira" },
+  { id: "WEDNESDAY", label: "Quarta-feira" },
+  { id: "THURSDAY", label: "Quinta-feira" },
+  { id: "FRIDAY", label: "Sexta-feira" },
+  { id: "SATURDAY", label: "Sábado" },
+]
 
 const formSchema = z.object({
-  nome: z.string().min(3, {
+  name: z.string().min(3, {
     message: "O nome deve ter pelo menos 3 caracteres.",
   }),
   email: z.string().email({
     message: "Email inválido.",
-  }),
-  telefone: z.string().min(10, {
+  }).optional(),
+  phone: z.string().min(10, {
     message: "Telefone inválido.",
   }),
-  especialidade: z.string().min(1, {
-    message: "Selecione uma especialidade.",
+  profession: z.string().min(1, {
+    message: "Selecione uma profissão.",
   }),
-  documento: z.string().min(1, {
-    message: "Documento é obrigatório.",
-  }),
-  biografia: z.string().optional(),
+  description: z.string().optional(),
   indicadoPor: z.string().min(3, {
     message: "Informe quem indicou este profissional.",
   }),
   lojaId: z.string().optional(),
-  endereco: z.object({
-    cep: z.string().min(8, {
-      message: "CEP inválido.",
-    }),
-    rua: z.string().min(1, {
-      message: "Rua é obrigatória.",
-    }),
-    numero: z.string().min(1, {
-      message: "Número é obrigatório.",
-    }),
-    complemento: z.string().optional(),
-    bairro: z.string().min(1, {
-      message: "Bairro é obrigatório.",
-    }),
-    cidade: z.string().min(1, {
-      message: "Cidade é obrigatória.",
-    }),
-    estado: z.string().min(2, {
-      message: "Estado é obrigatório.",
-    }),
+  zipCode: z.string().optional(),
+  street: z.string().optional(),
+  number: z.string().optional(),
+  complement: z.string().optional(),
+  district: z.string().min(1, {
+    message: "Bairro é obrigatório.",
   }),
+  city: z.string().min(1, {
+    message: "Cidade é obrigatória.",
+  }),
+  state: z.string().min(2, {
+    message: "Estado é obrigatório.",
+  }),
+  socialMedia: z.object({
+    instagram: z.string().optional(),
+    linkedin: z.string().optional(),
+    whatsapp: z.string().optional(),
+  }),
+  availableDays: z.array(z.string()).optional(),
 })
 
 export function ProfissionalIndicadoForm() {
@@ -71,23 +77,26 @@ export function ProfissionalIndicadoForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nome: "",
+      name: "",
       email: "",
-      telefone: "",
-      especialidade: "",
-      documento: "",
-      biografia: "",
+      phone: "",
+      profession: "",
+      description: "",
       indicadoPor: "",
       lojaId: "",
-      endereco: {
-        cep: "",
-        rua: "",
-        numero: "",
-        complemento: "",
-        bairro: "",
-        cidade: "",
-        estado: "",
+      zipCode: "",
+      street: "",
+      number: "",
+      complement: "",
+      district: "",
+      city: "",
+      state: "",
+      socialMedia: {
+        instagram: "",
+        linkedin: "",
+        whatsapp: "",
       },
+      availableDays: [],
     },
   })
 
@@ -120,10 +129,10 @@ export function ProfissionalIndicadoForm() {
       // Simulando resposta para desenvolvimento
       setTimeout(() => {
         if (cep === "12345678") {
-          form.setValue("endereco.rua", "Avenida Exemplo")
-          form.setValue("endereco.bairro", "Centro")
-          form.setValue("endereco.cidade", "São Paulo")
-          form.setValue("endereco.estado", "SP")
+          form.setValue("street", "Avenida Exemplo")
+          form.setValue("district", "Centro")
+          form.setValue("city", "São Paulo")
+          form.setValue("state", "SP")
           toast({
             title: "CEP encontrado",
             description: "Endereço preenchido automaticamente.",
@@ -140,13 +149,40 @@ export function ProfissionalIndicadoForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true)
     try {
-      // Adiciona a flag de indicado como true
+      // Formatar os dados para o DTO - removendo campos que não existem no modelo Prisma
       const dadosProfissional = {
-        ...values,
-        indicado: true,
+        name: values.name,
+        profession: values.profession,
+        description: values.description,
+        phone: values.phone,
+        email: values.email,
+        
+        // Dados de endereço
+        state: values.state,
+        city: values.city,
+        district: values.district,
+        street: values.street,
+        number: values.number,
+        complement: values.complement,
+        zipCode: values.zipCode,
+        
+        // Redes sociais
+        socialMedia: {
+          instagram: values.socialMedia.instagram,
+          linkedin: values.socialMedia.linkedin,
+          whatsapp: values.socialMedia.whatsapp,
+        },
+        
+        // Dias disponíveis
+        availableDays: values.availableDays,
+        
+        // Armazene dados adicionais em localStorage ou contexto para referência futura
+        // Não enviamos estes campos ao backend pois não existem no modelo Prisma
+        // indicadoPor: values.indicadoPor,
+        // lojaId: values.lojaId,
       }
 
-      await profissionaisService.cadastrarProfissional(dadosProfissional)
+      await profissionaisService.cadastrarProfissionalIndicado(dadosProfissional)
       toast({
         title: "Profissional indicado cadastrado",
         description: "O profissional indicado foi cadastrado com sucesso.",
@@ -179,7 +215,7 @@ export function ProfissionalIndicadoForm() {
               <div className="grid gap-6 md:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="nome"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nome Completo</FormLabel>
@@ -195,7 +231,7 @@ export function ProfissionalIndicadoForm() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>Email (opcional)</FormLabel>
                       <FormControl>
                         <Input placeholder="email@exemplo.com" {...field} />
                       </FormControl>
@@ -205,7 +241,7 @@ export function ProfissionalIndicadoForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="telefone"
+                  name="phone"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Telefone</FormLabel>
@@ -218,14 +254,14 @@ export function ProfissionalIndicadoForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="especialidade"
+                  name="profession"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Especialidade</FormLabel>
+                      <FormLabel>Profissão</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma especialidade" />
+                            <SelectValue placeholder="Selecione uma profissão" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -237,19 +273,6 @@ export function ProfissionalIndicadoForm() {
                           <SelectItem value="Outro">Outro</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="documento"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Documento (CPF/CNPJ)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="000.000.000-00" {...field} />
-                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -308,10 +331,10 @@ export function ProfissionalIndicadoForm() {
 
               <FormField
                 control={form.control}
-                name="biografia"
+                name="description"
                 render={({ field }) => (
                   <FormItem className="mt-6">
-                    <FormLabel>Biografia</FormLabel>
+                    <FormLabel>Descrição</FormLabel>
                     <FormControl>
                       <Textarea placeholder="Informações sobre o profissional" className="min-h-[120px]" {...field} />
                     </FormControl>
@@ -343,10 +366,10 @@ export function ProfissionalIndicadoForm() {
               <div className="grid gap-6 md:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="endereco.cep"
+                  name="zipCode"
                   render={({ field }) => (
                     <FormItem className="relative">
-                      <FormLabel>CEP</FormLabel>
+                      <FormLabel>CEP (opcional)</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
@@ -372,10 +395,10 @@ export function ProfissionalIndicadoForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="endereco.rua"
+                  name="street"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Rua</FormLabel>
+                      <FormLabel>Rua (opcional)</FormLabel>
                       <FormControl>
                         <Input placeholder="Nome da rua" {...field} />
                       </FormControl>
@@ -385,10 +408,10 @@ export function ProfissionalIndicadoForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="endereco.numero"
+                  name="number"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Número</FormLabel>
+                      <FormLabel>Número (opcional)</FormLabel>
                       <FormControl>
                         <Input placeholder="123" {...field} />
                       </FormControl>
@@ -398,10 +421,10 @@ export function ProfissionalIndicadoForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="endereco.complemento"
+                  name="complement"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Complemento</FormLabel>
+                      <FormLabel>Complemento (opcional)</FormLabel>
                       <FormControl>
                         <Input placeholder="Apto 101" {...field} />
                       </FormControl>
@@ -411,7 +434,7 @@ export function ProfissionalIndicadoForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="endereco.bairro"
+                  name="district"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Bairro</FormLabel>
@@ -424,7 +447,7 @@ export function ProfissionalIndicadoForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="endereco.cidade"
+                  name="city"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Cidade</FormLabel>
@@ -437,7 +460,7 @@ export function ProfissionalIndicadoForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="endereco.estado"
+                  name="state"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Estado</FormLabel>
@@ -489,7 +512,109 @@ export function ProfissionalIndicadoForm() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+        >
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <LinkIcon className="h-5 w-5 text-primary" />
+                Redes Sociais
+              </CardTitle>
+              <CardDescription>Informações de contato e redes sociais do profissional</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="socialMedia.instagram"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Instagram (opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="@usuario" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="socialMedia.linkedin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>LinkedIn (opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="URL do perfil LinkedIn" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="socialMedia.whatsapp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>WhatsApp (opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="(00) 00000-0000" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Número de WhatsApp para contato profissional
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl">Dias Disponíveis</CardTitle>
+              <CardDescription>Selecione os dias em que o profissional atende</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {diasDaSemana.map((dia) => (
+                  <FormField
+                    key={dia.id}
+                    control={form.control}
+                    name="availableDays"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(dia.id)}
+                            onCheckedChange={(checked) => {
+                              const updatedValue = checked
+                                ? [...(field.value || []), dia.id]
+                                : (field.value || []).filter((value) => value !== dia.id)
+                              field.onChange(updatedValue)
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal cursor-pointer">{dia.label}</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
           className="flex flex-col sm:flex-row justify-end gap-4"
         >
           <Button variant="outline" type="button" onClick={() => router.push("/profissionais/indicados")}>
