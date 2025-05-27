@@ -1,6 +1,15 @@
-import { diasDaSemana } from "@/components/profissionais-indicados/profissional-indicado-form";
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+
+export const diasDaSemana = [
+  { id: "SUNDAY", label: "Domingo" },
+  { id: "MONDAY", label: "Segunda-feira" },
+  { id: "TUESDAY", label: "Terça-feira" },
+  { id: "WEDNESDAY", label: "Quarta-feira" },
+  { id: "THURSDAY", label: "Quinta-feira" },
+  { id: "FRIDAY", label: "Sexta-feira" },
+  { id: "SATURDAY", label: "Sábado" },
+]
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

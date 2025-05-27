@@ -146,7 +146,7 @@ export function LojasList() {
           />
         </div>
         <Button asChild>
-          <Link href="/lojas/nova">Nova Loja</Link>
+          <Link href="/fornecedores-parceiros/nova">Nova Loja</Link>
         </Button>
       </div>
 
@@ -217,7 +217,7 @@ export function LojasList() {
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/lojas/${loja.id}`}>
+                          <Link href={`/fornecedores-parceiros/${loja.id}`}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </Link>

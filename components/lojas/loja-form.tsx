@@ -154,7 +154,7 @@ export function LojaForm({ id }: { id?: string }) {
           description: "A loja foi cadastrada com sucesso.",
         })
       }
-      router.push("/lojas")
+      router.push("/fornecedores-parceiros")
     } catch (error) {
       toast({
         title: "Erro",
@@ -383,7 +383,7 @@ export function LojaForm({ id }: { id?: string }) {
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Button variant="outline" type="button" onClick={() => router.push("/lojas")}>
+          <Button variant="outline" type="button" onClick={() => router.push("/fornecedores-parceiros")}>
             Cancelar
           </Button>
           <Button type="submit" disabled={loading}>

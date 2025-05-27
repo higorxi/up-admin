@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -14,19 +14,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { profissionaisService } from "@/services/profissionais-service"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
-import { lojasService } from "@/services/lojas-service"
 import { motion } from "framer-motion"
 import { UserPlus, MapPin, User, Link as LinkIcon } from "lucide-react"
-
-export const diasDaSemana = [
-  { id: "SUNDAY", label: "Domingo" },
-  { id: "MONDAY", label: "Segunda-feira" },
-  { id: "TUESDAY", label: "Terça-feira" },
-  { id: "WEDNESDAY", label: "Quarta-feira" },
-  { id: "THURSDAY", label: "Quinta-feira" },
-  { id: "FRIDAY", label: "Sexta-feira" },
-  { id: "SATURDAY", label: "Sábado" },
-]
+import diasDaSemana from "@/lib/utils"
 
 const formSchema = z.object({
   name: z.string().min(3, {
@@ -70,8 +60,6 @@ const formSchema = z.object({
 export function ProfissionalIndicadoForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [lojas, setLojas] = useState([])
-  const [loadingLojas, setLoadingLojas] = useState(false)
   const [cepBuscando, setCepBuscando] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -99,22 +87,6 @@ export function ProfissionalIndicadoForm() {
       availableDays: [],
     },
   })
-
-  useEffect(() => {
-    const carregarLojas = async () => {
-      setLoadingLojas(true)
-      try {
-        const data = await lojasService.listarLojas()
-        setLojas(data.filter((loja) => loja.status === "Ativa"))
-      } catch (error) {
-        console.error("Erro ao carregar lojas:", error)
-      } finally {
-        setLoadingLojas(false)
-      }
-    }
-
-    carregarLojas()
-  }, [])
 
   // Função para buscar endereço pelo CEP
   const buscarEnderecoPorCep = async (cep: string) => {
@@ -273,56 +245,6 @@ export function ProfissionalIndicadoForm() {
                           <SelectItem value="Outro">Outro</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="indicadoPor"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Indicado Por</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome de quem indicou" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Informe o nome da pessoa ou entidade que indicou este profissional.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lojaId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Loja</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma loja (opcional)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {loadingLojas ? (
-                            <SelectItem value="loading" disabled>
-                              Carregando lojas...
-                            </SelectItem>
-                          ) : (
-                            <>
-                              <SelectItem value="none">Nenhuma loja</SelectItem>
-                              {lojas.map((loja) => (
-                                <SelectItem key={loja.id} value={loja.id}>
-                                  {loja.nome}
-                                </SelectItem>
-                              ))}
-                            </>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>Associe o profissional a uma loja (opcional)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

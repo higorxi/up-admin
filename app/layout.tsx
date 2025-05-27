@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Sistema Administrativo",
+  title: "Admin - UP",
   description: "Sistema interno para gerenciamento de profissionais, usuários e lojas",
     generator: 'v0.dev'
 }

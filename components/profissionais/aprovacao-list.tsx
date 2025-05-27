@@ -18,23 +18,85 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { lojasService } from "@/services/lojas-service"
+
+// Tipagens
+interface PartnerSupplier {
+  id: string
+  tradeName: string
+  companyName: string
+  document: string
+  stateRegistration: string | null
+  contact: string
+  profileImage: string | null
+  accessPending: boolean
+  storeId: string | null
+}
+
+interface ApiResponse {
+  id: string
+  email: string
+  password: string
+  createdAt: string
+  updatedAt: string
+  professionalId: string | null
+  partnerSupplierId: string
+  loveDecorationId: string | null
+  partnerSupplier: PartnerSupplier
+}
+
+export interface FornecedorParceiro {
+  id: string
+  email: string
+  createdAt: string
+  updatedAt: string
+  fornecedorId: string
+  nomeFantasia: string
+  razaoSocial: string
+  documento: string
+  inscricaoEstadual: string | null
+  contato: string
+  imagemPerfil: string | null
+  acessoPendente: boolean
+  dataCadastro: string
+}
 
 export function AprovacaoList() {
-  const [profissionais, setProfissionais] = useState<any>([])
-  const [loading, setLoading] = useState(true)
-  const [motivoRejeicao, setMotivoRejeicao] = useState("")
-  const [profissionalParaRejeitar, setProfissionalParaRejeitar] = useState(null)
-  const [profissionalDetalhes, setProfissionalDetalhes] = useState(null)
+  const [fornecedoresParceiros, setFornecedoresParceiros] = useState<FornecedorParceiro[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [motivoRejeicao, setMotivoRejeicao] = useState<string>("")
+  const [fornecedorParaRejeitar, setFornecedorParaRejeitar] = useState<string | null>(null)
+  const [fornecedorDetalhes, setFornecedorDetalhes] = useState<FornecedorParceiro | null>(null)
 
   useEffect(() => {
-    const carregarProfissionais = async () => {
+    const carregarFornecedoresParceiros = async (): Promise<void> => {
       try {
-        const data = await profissionaisService.listarProfissionaisPendentes()
-        setProfissionais(data)
+        const data: ApiResponse[] = await lojasService.listarLojasParceirasPendentes()
+        
+        // Desestruturando o JSON recebido
+        const fornecedoresFormatados: FornecedorParceiro[] = data.map((item: ApiResponse) => ({
+          id: item.id,
+          email: item.email,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          // Dados do fornecedor parceiro
+          fornecedorId: item.partnerSupplier.id,
+          nomeFantasia: item.partnerSupplier.tradeName,
+          razaoSocial: item.partnerSupplier.companyName,
+          documento: item.partnerSupplier.document,
+          inscricaoEstadual: item.partnerSupplier.stateRegistration,
+          contato: item.partnerSupplier.contact,
+          imagemPerfil: item.partnerSupplier.profileImage,
+          acessoPendente: item.partnerSupplier.accessPending,
+          // Formatação da data
+          dataCadastro: new Date(item.createdAt).toLocaleDateString('pt-BR'),
+        }))
+        
+        setFornecedoresParceiros(fornecedoresFormatados)
       } catch (error) {
         toast({
           title: "Erro",
-          description: "Não foi possível carregar os profissionais pendentes.",
+          description: "Não foi possível carregar os fornecedores parceiros pendentes.",
           variant: "destructive",
         })
       } finally {
@@ -42,71 +104,70 @@ export function AprovacaoList() {
       }
     }
 
-    carregarProfissionais()
+    carregarFornecedoresParceiros()
   }, [])
 
-  const handleAprovar = async (id) => {
+  const handleAprovar = async (id: string): Promise<void> => {
     try {
-      await profissionaisService.aprovarProfissional(id)
-      setProfissionais(profissionais.filter((p) => p.id !== id))
+      await lojasService.atualizarPendenciaFornecedor(id, false)
+      setFornecedoresParceiros(fornecedoresParceiros.filter((f) => f.fornecedorId !== id))
       toast({
-        title: "Profissional aprovado",
-        description: "O profissional foi aprovado com sucesso.",
+        title: "Fornecedor parceiro aprovado",
+        description: "O fornecedor parceiro foi aprovado com sucesso.",
       })
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao aprovar o profissional.",
+        description: "Ocorreu um erro ao aprovar o fornecedor parceiro.",
         variant: "destructive",
       })
     }
   }
 
-  const handleRejeitar = async () => {
-    if (!profissionalParaRejeitar) return
+  const handleRejeitar = async (id: string): Promise<void> => {
 
     try {
-      await profissionaisService.rejeitarProfissional(profissionalParaRejeitar, motivoRejeicao)
-      setProfissionais(profissionais.filter((p) => p.id !== profissionalParaRejeitar))
+      await lojasService.atualizarPendenciaFornecedor(id, true)
+      setFornecedoresParceiros(fornecedoresParceiros.filter((f) => f.fornecedorId !== id))
       toast({
-        title: "Profissional rejeitado",
-        description: "O profissional foi rejeitado com sucesso.",
+        title: "Fornecedor parceiro rejeitado",
+        description: "O fornecedor parceiro foi rejeitado com sucesso.",
       })
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao rejeitar o profissional.",
+        description: "Ocorreu um erro ao rejeitar o fornecedor parceiro.",
         variant: "destructive",
       })
     } finally {
-      setProfissionalParaRejeitar(null)
+      setFornecedorParaRejeitar(null)
       setMotivoRejeicao("")
     }
   }
 
-  const abrirDetalhes = (profissional) => {
-    setProfissionalDetalhes(profissional)
+  const abrirDetalhes = (fornecedor: FornecedorParceiro): void => {
+    setFornecedorDetalhes(fornecedor)
   }
 
   if (loading) {
     return (
-      <Card>
+      <Card className="w-full">
         <CardContent className="flex flex-col items-center justify-center py-10">
           <div className="text-center space-y-2">
-            <h3 className="text-xl font-medium">Carregando profissionais pendentes...</h3>
+            <h3 className="text-lg sm:text-xl font-medium">Carregando fornecedores parceiros pendentes...</h3>
           </div>
         </CardContent>
       </Card>
     )
   }
 
-  if (profissionais.length === 0) {
+  if (fornecedoresParceiros.length === 0) {
     return (
-      <Card>
+      <Card className="w-full">
         <CardContent className="flex flex-col items-center justify-center py-10">
           <div className="text-center space-y-2">
-            <h3 className="text-xl font-medium">Nenhum profissional pendente</h3>
-            <p className="text-muted-foreground">Não há profissionais aguardando aprovação no momento.</p>
+            <h3 className="text-lg sm:text-xl font-medium">Nenhum fornecedor parceiro pendente</h3>
+            <p className="text-sm sm:text-base text-muted-foreground">Não há fornecedores parceiros aguardando aprovação no momento.</p>
           </div>
         </CardContent>
       </Card>
@@ -114,53 +175,74 @@ export function AprovacaoList() {
   }
 
   return (
-    <>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {profissionais.map((profissional) => (
-          <Card key={profissional.id}>
+    <div className="w-full">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {fornecedoresParceiros.map((fornecedor) => (
+          <Card key={fornecedor.id} className="w-full">
             <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <Badge variant="warning">Pendente</Badge>
-                <div className="text-xs text-muted-foreground">{profissional.dataCadastro}</div>
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+                <Badge variant="warning" className="w-fit">Pendente</Badge>
+                <div className="text-xs text-muted-foreground">{fornecedor.dataCadastro}</div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center text-center mb-4">
-                <Avatar className="h-20 w-20 mb-2">
-                  <AvatarImage src={profissional.avatar || "/placeholder.svg"} alt={profissional.nome} />
-                  <AvatarFallback>{profissional.nome.charAt(0)}</AvatarFallback>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col items-center text-center">
+                <Avatar className="h-16 w-16 sm:h-20 sm:w-20 mb-2">
+                  <AvatarImage src={fornecedor.imagemPerfil || undefined} alt={fornecedor.nomeFantasia} />
+                  <AvatarFallback className="text-lg">{fornecedor.nomeFantasia?.charAt(0) || 'F'}</AvatarFallback>
                 </Avatar>
-                <CardTitle className="text-xl">{profissional.nome}</CardTitle>
-                <CardDescription>{profissional.especialidade}</CardDescription>
+                <CardTitle className="text-lg sm:text-xl leading-tight">{fornecedor.nomeFantasia}</CardTitle>
+                <CardDescription className="text-sm text-center break-words">{fornecedor.razaoSocial}</CardDescription>
               </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
+              <div className="space-y-2 text-xs sm:text-sm">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                   <span className="font-medium">Email:</span>
-                  <span>{profissional.email}</span>
+                  <span className="text-right break-all">{fornecedor.email}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Telefone:</span>
-                  <span>{profissional.telefone}</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="font-medium">Contato:</span>
+                  <span className="text-right">{fornecedor.contato}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Documento:</span>
-                  <span>{profissional.documento}</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="font-medium">CNPJ:</span>
+                  <span className="text-right font-mono">{fornecedor.documento}</span>
                 </div>
+                {fornecedor.inscricaoEstadual && (
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                    <span className="font-medium">Insc. Estadual:</span>
+                    <span className="text-right">{fornecedor.inscricaoEstadual}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between gap-2">
-              <Button variant="outline" size="sm" onClick={() => abrirDetalhes(profissional)}>
+            <CardFooter className="flex flex-col gap-2 p-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => abrirDetalhes(fornecedor)}
+                className="w-full"
+              >
                 <Eye className="mr-2 h-4 w-4" />
-                Detalhes
+                Ver Detalhes
               </Button>
-              <div className="flex gap-2">
-                <Button variant="destructive" size="sm" onClick={() => setProfissionalParaRejeitar(profissional.id)}>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Rejeitar
+              <div className="flex gap-2 w-full">
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  onClick={() => handleRejeitar(fornecedor.fornecedorId)}
+                  className="flex-1 min-w-0"
+                >
+                  <XCircle className="mr-1 h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Rejeitar</span>
                 </Button>
-                <Button variant="default" size="sm" onClick={() => handleAprovar(profissional.id)}>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Aprovar
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  onClick={() => handleAprovar(fornecedor.fornecedorId)}
+                  className="flex-1 min-w-0"
+                >
+                  <CheckCircle className="mr-1 h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Aprovar</span>
                 </Button>
               </div>
             </CardFooter>
@@ -168,117 +250,84 @@ export function AprovacaoList() {
         ))}
       </div>
 
-      {/* Modal de rejeição */}
-      <Dialog open={!!profissionalParaRejeitar} onOpenChange={(open) => !open && setProfissionalParaRejeitar(null)}>
-        <DialogContent>
+      {/* Modal de detalhes */}
+      <Dialog open={!!fornecedorDetalhes} onOpenChange={(open) => !open && setFornecedorDetalhes(null)}>
+        <DialogContent className="w-[95vw] max-w-4xl mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Rejeitar profissional</DialogTitle>
-            <DialogDescription>
-              Informe o motivo da rejeição. Esta informação será enviada ao profissional.
+            <DialogTitle className="text-lg sm:text-xl">Detalhes do fornecedor parceiro</DialogTitle>
+            <DialogDescription className="text-sm">
+              Informações completas do fornecedor parceiro pendente de aprovação.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="motivo">Motivo da rejeição</Label>
-              <Textarea
-                id="motivo"
-                placeholder="Descreva o motivo da rejeição..."
-                value={motivoRejeicao}
-                onChange={(e) => setMotivoRejeicao(e.target.value)}
-                className="min-h-[100px]"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setProfissionalParaRejeitar(null)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleRejeitar} disabled={!motivoRejeicao.trim()}>
-              Confirmar rejeição
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de detalhes */}
-      <Dialog open={!!profissionalDetalhes} onOpenChange={(open) => !open && setProfissionalDetalhes(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Detalhes do profissional</DialogTitle>
-            <DialogDescription>Informações completas do profissional pendente de aprovação.</DialogDescription>
-          </DialogHeader>
-          {profissionalDetalhes && (
+          {fornecedorDetalhes && (
             <div className="space-y-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex flex-col items-center">
-                  <Avatar className="h-24 w-24 mb-2">
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex flex-col items-center lg:items-start">
+                  <Avatar className="h-20 w-20 sm:h-24 sm:w-24 mb-2">
                     <AvatarImage
-                      src={profissionalDetalhes.avatar || "/placeholder.svg"}
-                      alt={profissionalDetalhes.nome}
+                      src={fornecedorDetalhes.imagemPerfil || undefined}
+                      alt={fornecedorDetalhes.nomeFantasia}
                     />
-                    <AvatarFallback>{profissionalDetalhes.nome.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="text-xl">{fornecedorDetalhes.nomeFantasia?.charAt(0) || 'F'}</AvatarFallback>
                   </Avatar>
-                  <h3 className="text-lg font-semibold">{profissionalDetalhes.nome}</h3>
-                  <p className="text-sm text-muted-foreground">{profissionalDetalhes.especialidade}</p>
+                  <h3 className="text-lg font-semibold text-center lg:text-left">{fornecedorDetalhes.nomeFantasia}</h3>
+                  <p className="text-sm text-muted-foreground text-center lg:text-left break-words max-w-xs">{fornecedorDetalhes.razaoSocial}</p>
                 </div>
                 <div className="flex-1 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
                       <h4 className="text-sm font-medium">Email</h4>
-                      <p>{profissionalDetalhes.email}</p>
+                      <p className="text-sm break-all">{fornecedorDetalhes.email}</p>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium">Telefone</h4>
-                      <p>{profissionalDetalhes.telefone}</p>
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-medium">Contato</h4>
+                      <p className="text-sm">{fornecedorDetalhes.contato}</p>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium">Documento</h4>
-                      <p>{profissionalDetalhes.documento}</p>
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-medium">CNPJ</h4>
+                      <p className="text-sm font-mono">{fornecedorDetalhes.documento}</p>
                     </div>
-                    <div>
+                    <div className="space-y-1">
                       <h4 className="text-sm font-medium">Data de cadastro</h4>
-                      <p>{profissionalDetalhes.dataCadastro}</p>
+                      <p className="text-sm">{fornecedorDetalhes.dataCadastro}</p>
                     </div>
-                    {profissionalDetalhes.indicado && (
-                      <div className="col-span-2">
-                        <h4 className="text-sm font-medium">Indicado por</h4>
-                        <p>{profissionalDetalhes.indicadoPor || "Não informado"}</p>
+                    {fornecedorDetalhes.inscricaoEstadual && (
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-medium">Inscrição Estadual</h4>
+                        <p className="text-sm">{fornecedorDetalhes.inscricaoEstadual}</p>
                       </div>
                     )}
                   </div>
 
-                  {profissionalDetalhes.biografia && (
-                    <div>
-                      <h4 className="text-sm font-medium">Biografia</h4>
-                      <p className="text-sm">{profissionalDetalhes.biografia}</p>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-medium">Nome Fantasia</h4>
+                      <p className="text-sm">{fornecedorDetalhes.nomeFantasia}</p>
                     </div>
-                  )}
-
-                  {profissionalDetalhes.endereco && (
-                    <div>
-                      <h4 className="text-sm font-medium">Endereço</h4>
-                      <p className="text-sm">
-                        {profissionalDetalhes.endereco.rua}, {profissionalDetalhes.endereco.numero}
-                        {profissionalDetalhes.endereco.complemento && `, ${profissionalDetalhes.endereco.complemento}`}{" "}
-                        - {profissionalDetalhes.endereco.bairro}, {profissionalDetalhes.endereco.cidade}/
-                        {profissionalDetalhes.endereco.estado} - CEP: {profissionalDetalhes.endereco.cep}
-                      </p>
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-medium">Razão Social</h4>
+                      <p className="text-sm break-words">{fornecedorDetalhes.razaoSocial}</p>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setProfissionalDetalhes(null)}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setFornecedorDetalhes(null)}
+              className="w-full sm:w-auto"
+            >
               Fechar
             </Button>
             <Button
               variant="destructive"
               onClick={() => {
-                setProfissionalParaRejeitar(profissionalDetalhes.id)
-                setProfissionalDetalhes(null)
+                handleRejeitar(fornecedorDetalhes!.fornecedorId)
+                setFornecedorDetalhes(null)
               }}
+              className="w-full sm:w-auto"
             >
               <XCircle className="mr-2 h-4 w-4" />
               Rejeitar
@@ -286,9 +335,10 @@ export function AprovacaoList() {
             <Button
               variant="default"
               onClick={() => {
-                handleAprovar(profissionalDetalhes.id)
-                setProfissionalDetalhes(null)
+                handleAprovar(fornecedorDetalhes!.fornecedorId)
+                setFornecedorDetalhes(null)
               }}
+              className="w-full sm:w-auto"
             >
               <CheckCircle className="mr-2 h-4 w-4" />
               Aprovar
@@ -296,6 +346,6 @@ export function AprovacaoList() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   )
 }

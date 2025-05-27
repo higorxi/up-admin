@@ -3,6 +3,7 @@
 import { apiClient } from "@/lib/api-client"
 import type { Endereco, Profissional } from "./profissionais-service"
 import { profissionaisService } from "./profissionais-service"
+import { FornecedorParceiro } from "@/components/profissionais/aprovacao-list"
 
 // Tipos
 export type Loja = {
@@ -181,7 +182,7 @@ class LojasService {
 
 
 //Listar Loja Parceira Pendente
-  async listarProfissionaisPendentes(): Promise<Profissional[]> {
+  async listarLojasParceirasPendentes(): Promise<FornecedorParceiro[]> {
     try {
       const response = await apiClient.get<Profissional[]>('/partner-supplier/pending');
       return response
@@ -190,6 +191,21 @@ class LojasService {
       throw error
     }
   }
+
+    // Atualizar loja existente
+    async atualizarPendenciaFornecedor(id: string, accessPending: boolean): Promise<FornecedorParceiro> {
+      try {
+        const data = {
+          accessPending
+        }
+        const lojaAtualizada = await apiClient.put<FornecedorParceiro>(`/partner-supplier/pending/${id}`, data);
+  
+        return lojaAtualizada
+      } catch (error) {
+        console.error(`Erro ao atualizar loja com ID ${id}:`, error)
+        throw error
+      }
+    }
 
   // Atualizar loja existente
   async atualizarLoja(id: string, dados: Partial<Loja>): Promise<Loja> {
