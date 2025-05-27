@@ -151,7 +151,7 @@ export function ProfissionaisList() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Buscar profissionais por nome, email, profissão ou nome do estabelecimento..."
+            placeholder="Buscar profissionais por nome, email, profissão ou nome da organização..."
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -165,7 +165,7 @@ export function ProfissionaisList() {
             <TableRow>
               <TableHead>Profissional</TableHead>
               <TableHead>Profissão</TableHead>
-              <TableHead>Estabelecimento</TableHead>
+              <TableHead>Organização</TableHead>
               <TableHead>Nível</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Data de Cadastro</TableHead>
