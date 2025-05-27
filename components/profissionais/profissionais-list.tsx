@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { MoreHorizontal, Search, Edit, Trash, CheckCircle, XCircle } from "lucide-react"
+import { MoreHorizontal, Search, Edit, Trash, CheckCircle, XCircle, Star, Award } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -29,6 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import Loading from "../loading"
 
 export function ProfissionaisList() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -57,40 +58,45 @@ export function ProfissionaisList() {
 
   const filteredProfissionais = profissionais.filter(
     (profissional) =>
-      profissional.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      profissional.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      profissional.especialidade.toLowerCase().includes(searchTerm.toLowerCase()),
+      profissional.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profissional.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profissional.profession.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profissional.officeName.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const handleAprovar = async (id) => {
+  const handleToggleVerified = async (id, currentStatus) => {
     try {
-      await profissionaisService.aprovarProfissional(id)
-      setProfissionais(profissionais.map((p) => (p.id === id ? { ...p, status: "Aprovado" } : p)))
+      await profissionaisService.alterarVerificacao(id, !currentStatus)
+      setProfissionais(profissionais.map((p) => (p.id === id ? { ...p, verified: !currentStatus } : p)))
       toast({
-        title: "Profissional aprovado",
-        description: "O profissional foi aprovado com sucesso.",
+        title: currentStatus ? "Verificação removida" : "Profissional verificado",
+        description: currentStatus 
+          ? "A verificação do profissional foi removida com sucesso."
+          : "O profissional foi verificado com sucesso.",
       })
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao aprovar o profissional.",
+        description: "Ocorreu um erro ao alterar o status de verificação.",
         variant: "destructive",
       })
     }
   }
 
-  const handleRejeitar = async (id) => {
+  const handleToggleFeatured = async (id, currentStatus) => {
     try {
-      await profissionaisService.rejeitarProfissional(id)
-      setProfissionais(profissionais.map((p) => (p.id === id ? { ...p, status: "Rejeitado" } : p)))
+      await profissionaisService.alterarDestaque(id, !currentStatus)
+      setProfissionais(profissionais.map((p) => (p.id === id ? { ...p, featured: !currentStatus } : p)))
       toast({
-        title: "Profissional rejeitado",
-        description: "O profissional foi rejeitado com sucesso.",
+        title: currentStatus ? "Destaque removido" : "Profissional destacado",
+        description: currentStatus 
+          ? "O profissional foi removido dos destaques com sucesso."
+          : "O profissional foi adicionado aos destaques com sucesso.",
       })
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao rejeitar o profissional.",
+        description: "Ocorreu um erro ao alterar o status de destaque.",
         variant: "destructive",
       })
     }
@@ -117,8 +123,25 @@ export function ProfissionaisList() {
     }
   }
 
+  const getLevelBadgeVariant = (level) => {
+    switch (level) {
+      case "GOLD":
+        return "default"
+      case "SILVER":
+        return "secondary"
+      case "BRONZE":
+        return "outline"
+      default:
+        return "outline"
+    }
+  }
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('pt-BR')
+  }
+
   if (loading) {
-    return <div className="flex justify-center p-8">Carregando profissionais...</div>
+    return <Loading text="Carregando profissionais..."/>
   }
 
   return (
@@ -128,7 +151,7 @@ export function ProfissionaisList() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Buscar profissionais..."
+            placeholder="Buscar profissionais por nome, email, profissão ou nome do estabelecimento..."
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -140,8 +163,10 @@ export function ProfissionaisList() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Especialidade</TableHead>
+              <TableHead>Profissional</TableHead>
+              <TableHead>Profissão</TableHead>
+              <TableHead>Estabelecimento</TableHead>
+              <TableHead>Nível</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Data de Cadastro</TableHead>
               <TableHead className="w-[80px]"></TableHead>
@@ -150,7 +175,7 @@ export function ProfissionaisList() {
           <TableBody>
             {filteredProfissionais.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   Nenhum profissional encontrado.
                 </TableCell>
               </TableRow>
@@ -160,30 +185,57 @@ export function ProfissionaisList() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={profissional.avatar || "/placeholder.svg"} alt={profissional.nome} />
-                        <AvatarFallback>{profissional.nome.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={profissional.profileImage || "/placeholder.svg"} alt={profissional.name} />
+                        <AvatarFallback>{profissional.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-medium">{profissional.nome}</span>
-                        <span className="text-xs text-muted-foreground">{profissional.email}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium">{profissional.name}</span>
+                          {profissional.verified && (
+                            <CheckCircle className="h-3 w-3 text-green-500" />
+                          )}
+                          {profissional.featured && (
+                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{profissional.user.email}</span>
+                        <span className="text-xs text-muted-foreground">{profissional.phone}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{profissional.especialidade}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        profissional.status === "Aprovado"
-                          ? "success"
-                          : profissional.status === "Pendente"
-                            ? "warning"
-                            : "destructive"
-                      }
-                    >
-                      {profissional.status}
-                    </Badge>
+                    <div className="flex flex-col">
+                      <span>{profissional.profession}</span>
+                      {profissional.registrationAgency && (
+                        <span className="text-xs text-muted-foreground">{profissional.registrationAgency}</span>
+                      )}
+                    </div>
                   </TableCell>
-                  <TableCell>{profissional.dataCadastro}</TableCell>
+                  <TableCell>{profissional.officeName}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getLevelBadgeVariant(profissional.level)}>
+                        {profissional.level}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">{profissional.points} pts</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <Badge
+                        variant={profissional.verified ? "success" : "secondary"}
+                        className="w-fit"
+                      >
+                        {profissional.verified ? "Verificado" : "Não verificado"}
+                      </Badge>
+                      {profissional.featured && (
+                        <Badge variant="outline" className="w-fit">
+                          Destacado
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{formatDate(profissional.user.createdAt)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -201,18 +253,14 @@ export function ProfissionaisList() {
                             Editar
                           </Link>
                         </DropdownMenuItem>
-                        {profissional.status === "Pendente" && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleAprovar(profissional.id)}>
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Aprovar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleRejeitar(profissional.id)}>
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Rejeitar
-                            </DropdownMenuItem>
-                          </>
-                        )}
+                        <DropdownMenuItem onClick={() => handleToggleVerified(profissional.id, profissional.verified)}>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          {profissional.verified ? "Remover Verificação" : "Verificar"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleToggleFeatured(profissional.id, profissional.featured)}>
+                          <Star className="mr-2 h-4 w-4" />
+                          {profissional.featured ? "Remover Destaque" : "Destacar"}
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive"

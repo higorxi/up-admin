@@ -30,6 +30,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PartnerSuppliers, Professional, PartnerSupplier, mapPartnerSupplierToDisplayData } from "@/types/Fornecedor-Parceiro/FornecedorParceiro"
 import { lojasService } from "@/services/lojas-service"
+import Loading from "../loading"
 
 export function PartnerSuppliersList() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -117,9 +118,8 @@ export function PartnerSuppliersList() {
   }
 
 
-
   if (loading) {
-    return <div className="flex justify-center p-8">Carregando fornecedores parceiros...</div>
+    return <Loading text="Carregando fornecedores parceiros..."/>
   }
 
   return (

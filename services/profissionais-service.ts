@@ -200,10 +200,10 @@ class ProfissionaisService {
   async listarProfissionais(): Promise<Profissional[]> {
     try {
       // Quando a API estiver pronta, descomente o código abaixo
-      // return await apiClient.get<Profissional[]>('/profissionais');
+      const profissionais = await apiClient.get<Profissional[]>('/professional');
 
       // Usando dados mockados para desenvolvimento
-      return mockProfissionais
+      return profissionais
     } catch (error) {
       console.error("Erro ao listar profissionais:", error)
       throw error

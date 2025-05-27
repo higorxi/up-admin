@@ -19,6 +19,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { lojasService } from "@/services/lojas-service"
+import Loading from "../loading"
 
 // Tipagens
 interface PartnerSupplier {
@@ -149,17 +150,11 @@ export function AprovacaoList() {
     setFornecedorDetalhes(fornecedor)
   }
 
+
   if (loading) {
-    return (
-      <Card className="w-full">
-        <CardContent className="flex flex-col items-center justify-center py-10">
-          <div className="text-center space-y-2">
-            <h3 className="text-lg sm:text-xl font-medium">Carregando fornecedores parceiros pendentes...</h3>
-          </div>
-        </CardContent>
-      </Card>
-    )
+    return <Loading text="Carregando fornecedores parceiros..."/>
   }
+
 
   if (fornecedoresParceiros.length === 0) {
     return (

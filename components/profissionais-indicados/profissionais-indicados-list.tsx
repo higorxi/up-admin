@@ -67,7 +67,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { formatDate, getDayLabelById } from "@/lib/utils";
 import { Separator } from "@radix-ui/react-dropdown-menu";
-import { diasDaSemana } from "./profissional-indicado-form";
+import Loading from "../loading";
 
 export function ProfissionaisIndicadosList() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -224,16 +224,7 @@ export function ProfissionaisIndicadosList() {
   );
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center p-8 min-h-[300px]">
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-muted-foreground">
-            Carregando profissionais indicados...
-          </p>
-        </div>
-      </div>
-    );
+    return <Loading text="Carregando profissionais indicados..."/>
   }
 
   return (
