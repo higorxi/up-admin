@@ -1,23 +1,23 @@
 // Vamos melhorar o serviço de lojas para incluir mais funcionalidades
 
-import { apiClient } from "@/lib/api-client"
-import type { Endereco, Profissional } from "./profissionais-service"
-import { profissionaisService } from "./profissionais-service"
-import { FornecedorParceiro } from "@/components/profissionais/aprovacao-list"
+import { apiClient } from "@/lib/api-client";
+import type { Endereco, Profissional } from "./profissionais-service";
+import { profissionaisService } from "./profissionais-service";
+import { FornecedorParceiro } from "@/components/profissionais/aprovacao-list";
 
 // Tipos
 export type Loja = {
-  id: string
-  nome: string
-  cnpj: string
-  telefone?: string
-  email?: string
-  status: "Ativa" | "Inativa" | "Suspensa"
-  dataCadastro: string
-  endereco: Endereco
-  totalProfissionais: number
-  descricao?: string
-}
+  id: string;
+  nome: string;
+  cnpj: string;
+  telefone?: string;
+  email?: string;
+  status: "Ativa" | "Inativa" | "Suspensa";
+  dataCadastro: string;
+  endereco: Endereco;
+  totalProfissionais: number;
+  descricao?: string;
+};
 
 // Dados mockados para desenvolvimento
 const mockLojas: Loja[] = [
@@ -39,7 +39,8 @@ const mockLojas: Loja[] = [
       estado: "SP",
     },
     totalProfissionais: 12,
-    descricao: "Clínica especializada em diversas áreas da saúde, com atendimento de qualidade e preços acessíveis.",
+    descricao:
+      "Clínica especializada em diversas áreas da saúde, com atendimento de qualidade e preços acessíveis.",
   },
   {
     id: "2",
@@ -58,7 +59,8 @@ const mockLojas: Loja[] = [
       estado: "SP",
     },
     totalProfissionais: 8,
-    descricao: "Centro médico com foco em atendimento humanizado e tecnologia de ponta.",
+    descricao:
+      "Centro médico com foco em atendimento humanizado e tecnologia de ponta.",
   },
   {
     id: "3",
@@ -78,7 +80,8 @@ const mockLojas: Loja[] = [
       estado: "RJ",
     },
     totalProfissionais: 5,
-    descricao: "Clínica especializada em bem-estar físico e mental, com foco em tratamentos naturais.",
+    descricao:
+      "Clínica especializada em bem-estar físico e mental, com foco em tratamentos naturais.",
   },
   {
     id: "4",
@@ -97,7 +100,8 @@ const mockLojas: Loja[] = [
       estado: "MG",
     },
     totalProfissionais: 15,
-    descricao: "Centro de especialidades médicas com profissionais renomados em diversas áreas.",
+    descricao:
+      "Centro de especialidades médicas com profissionais renomados em diversas áreas.",
   },
   {
     id: "5",
@@ -119,47 +123,47 @@ const mockLojas: Loja[] = [
     totalProfissionais: 0,
     descricao: "Clínica com atendimento completo para toda a família.",
   },
-]
+];
 
 // Serviço para gerenciar lojas
 class LojasService {
   // Listar todas as lojas
-  async listarLojas(): Promise<Loja[]> {
+  async listarFornecedoresParceiros(): Promise<any[]> {
     try {
       // Quando a API estiver pronta, descomente o código abaixo
-      // return await apiClient.get<Loja[]>('/lojas');
+      const fornecedoresParceiros = await apiClient.get<any[]>('/partner-supplier');
 
       // Usando dados mockados para desenvolvimento
-      return mockLojas
+      return fornecedoresParceiros;
     } catch (error) {
-      console.error("Erro ao listar lojas:", error)
-      throw error
+      console.error("Erro ao listar lojas:", error);
+      throw error;
     }
   }
 
   // Obter loja por ID
-  async obterLojaPorId(id: string): Promise<Loja | null> {
+  async obterFornecedorParceiroPorId(id: string): Promise<any> {
     try {
-      // Quando a API estiver pronta, descomente o código abaixo
-      // return await apiClient.get<Loja>(`/lojas/${id}`);
+      const fornecedorParceiro = await apiClient.get<any[]>(`/partner-supplier/${id}`);
 
       // Usando dados mockados para desenvolvimento
-      const loja = mockLojas.find((l) => l.id === id)
-      return loja || null
+      return fornecedorParceiro;
     } catch (error) {
-      console.error(`Erro ao obter loja com ID ${id}:`, error)
-      throw error
+      console.error(`Erro ao obter loja com ID ${id}:`, error);
+      throw error;
     }
   }
 
   // Cadastrar nova loja
-  async cadastrarLoja(dados: Omit<Loja, "id" | "status" | "dataCadastro" | "totalProfissionais">): Promise<Loja> {
+  async cadastrarLoja(
+    dados: Omit<Loja, "id" | "status" | "dataCadastro" | "totalProfissionais">
+  ): Promise<Loja> {
     try {
       // Quando a API estiver pronta, descomente o código abaixo
       // return await apiClient.post<Loja>('/lojas', dados);
 
       // Simulando cadastro para desenvolvimento
-      console.log("Loja cadastrada:", dados)
+      console.log("Loja cadastrada:", dados);
 
       // Simulando resposta da API
       const novaLoja = {
@@ -168,44 +172,51 @@ class LojasService {
         status: "Ativa",
         dataCadastro: new Date().toLocaleDateString(),
         totalProfissionais: 0,
-      }
+      };
 
       // Adicionar ao mock para desenvolvimento
-      mockLojas.push(novaLoja)
+      mockLojas.push(novaLoja);
 
-      return novaLoja
+      return novaLoja;
     } catch (error) {
-      console.error("Erro ao cadastrar loja:", error)
-      throw error
+      console.error("Erro ao cadastrar loja:", error);
+      throw error;
     }
   }
 
-
-//Listar Loja Parceira Pendente
+  //Listar Loja Parceira Pendente
   async listarLojasParceirasPendentes(): Promise<FornecedorParceiro[]> {
     try {
-      const response = await apiClient.get<Profissional[]>('/partner-supplier/pending');
-      return response
+      const response = await apiClient.get<FornecedorParceiro[]>(
+        "/partner-supplier/pending"
+      );
+      return response;
     } catch (error) {
-      console.error("Erro ao listar profissionais pendentes:", error)
-      throw error
+      console.error("Erro ao listar profissionais pendentes:", error);
+      throw error;
     }
   }
 
-    // Atualizar loja existente
-    async atualizarPendenciaFornecedor(id: string, accessPending: boolean): Promise<FornecedorParceiro> {
-      try {
-        const data = {
-          accessPending
-        }
-        const lojaAtualizada = await apiClient.put<FornecedorParceiro>(`/partner-supplier/pending/${id}`, data);
-  
-        return lojaAtualizada
-      } catch (error) {
-        console.error(`Erro ao atualizar loja com ID ${id}:`, error)
-        throw error
-      }
+  // Atualizar loja existente
+  async atualizarPendenciaFornecedor(
+    id: string,
+    accessPending: boolean
+  ): Promise<FornecedorParceiro> {
+    try {
+      const data = {
+        accessPending,
+      };
+      const lojaAtualizada = await apiClient.put<FornecedorParceiro>(
+        `/partner-supplier/pending/${id}`,
+        data
+      );
+
+      return lojaAtualizada;
+    } catch (error) {
+      console.error(`Erro ao atualizar loja com ID ${id}:`, error);
+      throw error;
     }
+  }
 
   // Atualizar loja existente
   async atualizarLoja(id: string, dados: Partial<Loja>): Promise<Loja> {
@@ -214,26 +225,26 @@ class LojasService {
       // return await apiClient.put<Loja>(`/lojas/${id}`, dados);
 
       // Simulando atualização para desenvolvimento
-      console.log(`Loja ${id} atualizada:`, dados)
+      console.log(`Loja ${id} atualizada:`, dados);
 
       // Simulando resposta da API
-      const index = mockLojas.findIndex((l) => l.id === id)
+      const index = mockLojas.findIndex((l) => l.id === id);
       if (index === -1) {
-        throw new Error(`Loja com ID ${id} não encontrada`)
+        throw new Error(`Loja com ID ${id} não encontrada`);
       }
 
       const lojaAtualizada = {
         ...mockLojas[index],
         ...dados,
-      }
+      };
 
       // Atualizar no mock para desenvolvimento
-      mockLojas[index] = lojaAtualizada
+      mockLojas[index] = lojaAtualizada;
 
-      return lojaAtualizada
+      return lojaAtualizada;
     } catch (error) {
-      console.error(`Erro ao atualizar loja com ID ${id}:`, error)
-      throw error
+      console.error(`Erro ao atualizar loja com ID ${id}:`, error);
+      throw error;
     }
   }
 
@@ -244,16 +255,16 @@ class LojasService {
       // await apiClient.patch(`/lojas/${id}/ativar`, {});
 
       // Simulando ativação para desenvolvimento
-      console.log(`Loja ${id} ativada`)
+      console.log(`Loja ${id} ativada`);
 
       // Atualizar o status no mock para desenvolvimento
-      const index = mockLojas.findIndex((l) => l.id === id)
+      const index = mockLojas.findIndex((l) => l.id === id);
       if (index !== -1) {
-        mockLojas[index].status = "Ativa"
+        mockLojas[index].status = "Ativa";
       }
     } catch (error) {
-      console.error(`Erro ao ativar loja com ID ${id}:`, error)
-      throw error
+      console.error(`Erro ao ativar loja com ID ${id}:`, error);
+      throw error;
     }
   }
 
@@ -264,16 +275,16 @@ class LojasService {
       // await apiClient.patch(`/lojas/${id}/desativar`, {});
 
       // Simulando desativação para desenvolvimento
-      console.log(`Loja ${id} desativada`)
+      console.log(`Loja ${id} desativada`);
 
       // Atualizar o status no mock para desenvolvimento
-      const index = mockLojas.findIndex((l) => l.id === id)
+      const index = mockLojas.findIndex((l) => l.id === id);
       if (index !== -1) {
-        mockLojas[index].status = "Inativa"
+        mockLojas[index].status = "Inativa";
       }
     } catch (error) {
-      console.error(`Erro ao desativar loja com ID ${id}:`, error)
-      throw error
+      console.error(`Erro ao desativar loja com ID ${id}:`, error);
+      throw error;
     }
   }
 
@@ -284,16 +295,16 @@ class LojasService {
       // await apiClient.delete(`/lojas/${id}`);
 
       // Simulando exclusão para desenvolvimento
-      console.log(`Loja ${id} excluída`)
+      console.log(`Loja ${id} excluída`);
 
       // Remover do mock para desenvolvimento
-      const index = mockLojas.findIndex((l) => l.id === id)
+      const index = mockLojas.findIndex((l) => l.id === id);
       if (index !== -1) {
-        mockLojas.splice(index, 1)
+        mockLojas.splice(index, 1);
       }
     } catch (error) {
-      console.error(`Erro ao excluir loja com ID ${id}:`, error)
-      throw error
+      console.error(`Erro ao excluir loja com ID ${id}:`, error);
+      throw error;
     }
   }
 
@@ -304,67 +315,92 @@ class LojasService {
       // return await apiClient.get<any[]>(`/lojas/${lojaId}/profissionais`);
 
       // Simulando listagem para desenvolvimento
-      console.log(`Listando profissionais da loja ${lojaId}`)
+      console.log(`Listando profissionais da loja ${lojaId}`);
 
       // Usando o serviço de profissionais para obter os profissionais da loja
-      return await profissionaisService.listarProfissionaisPorLoja(lojaId)
+      return await profissionaisService.listarProfissionaisPorLoja(lojaId);
     } catch (error) {
-      console.error(`Erro ao listar profissionais da loja com ID ${lojaId}:`, error)
-      throw error
+      console.error(
+        `Erro ao listar profissionais da loja com ID ${lojaId}:`,
+        error
+      );
+      throw error;
     }
   }
 
   // Adicionar profissional à loja
-  async adicionarProfissionalALoja(lojaId: string, profissionalId: string): Promise<void> {
+  async adicionarProfissionalALoja(
+    lojaId: string,
+    profissionalId: string
+  ): Promise<void> {
     try {
       // Quando a API estiver pronta, descomente o código abaixo
       // await apiClient.post(`/lojas/${lojaId}/profissionais`, { profissionalId });
 
       // Simulando adição para desenvolvimento
-      console.log(`Adicionando profissional ${profissionalId} à loja ${lojaId}`)
+      console.log(
+        `Adicionando profissional ${profissionalId} à loja ${lojaId}`
+      );
 
       // Atualizar o profissional no mock para desenvolvimento
-      const profissional = await profissionaisService.obterProfissionalPorId(profissionalId)
+      const profissional = await profissionaisService.obterProfissionalPorId(
+        profissionalId
+      );
       if (profissional) {
-        await profissionaisService.atualizarProfissional(profissionalId, { lojaId })
+        await profissionaisService.atualizarProfissional(profissionalId, {
+          lojaId,
+        });
 
         // Atualizar o contador de profissionais da loja
-        const index = mockLojas.findIndex((l) => l.id === lojaId)
+        const index = mockLojas.findIndex((l) => l.id === lojaId);
         if (index !== -1) {
-          mockLojas[index].totalProfissionais += 1
+          mockLojas[index].totalProfissionais += 1;
         }
       }
     } catch (error) {
-      console.error(`Erro ao adicionar profissional ${profissionalId} à loja ${lojaId}:`, error)
-      throw error
+      console.error(
+        `Erro ao adicionar profissional ${profissionalId} à loja ${lojaId}:`,
+        error
+      );
+      throw error;
     }
   }
 
   // Remover profissional da loja
-  async removerProfissionalDaLoja(lojaId: string, profissionalId: string): Promise<void> {
+  async removerProfissionalDaLoja(
+    lojaId: string,
+    profissionalId: string
+  ): Promise<void> {
     try {
       // Quando a API estiver pronta, descomente o código abaixo
       // await apiClient.delete(`/lojas/${lojaId}/profissionais/${profissionalId}`);
 
       // Simulando remoção para desenvolvimento
-      console.log(`Removendo profissional ${profissionalId} da loja ${lojaId}`)
+      console.log(`Removendo profissional ${profissionalId} da loja ${lojaId}`);
 
       // Atualizar o profissional no mock para desenvolvimento
-      const profissional = await profissionaisService.obterProfissionalPorId(profissionalId)
+      const profissional = await profissionaisService.obterProfissionalPorId(
+        profissionalId
+      );
       if (profissional && profissional.lojaId === lojaId) {
-        await profissionaisService.atualizarProfissional(profissionalId, { lojaId: undefined })
+        await profissionaisService.atualizarProfissional(profissionalId, {
+          lojaId: undefined,
+        });
 
         // Atualizar o contador de profissionais da loja
-        const index = mockLojas.findIndex((l) => l.id === lojaId)
+        const index = mockLojas.findIndex((l) => l.id === lojaId);
         if (index !== -1 && mockLojas[index].totalProfissionais > 0) {
-          mockLojas[index].totalProfissionais -= 1
+          mockLojas[index].totalProfissionais -= 1;
         }
       }
     } catch (error) {
-      console.error(`Erro ao remover profissional ${profissionalId} da loja ${lojaId}:`, error)
-      throw error
+      console.error(
+        `Erro ao remover profissional ${profissionalId} da loja ${lojaId}:`,
+        error
+      );
+      throw error;
     }
   }
 }
 
-export const lojasService = new LojasService()
+export const lojasService = new LojasService();

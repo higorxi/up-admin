@@ -134,9 +134,6 @@ export function ProfissionaisList() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/profissionais/aprovacao">Pendentes de Aprovação</Link>
-        </Button>
       </div>
 
       <div className="rounded-md border">

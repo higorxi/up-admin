@@ -13,8 +13,8 @@ export default function NovaLojaPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Nova Loja</h1>
-          <p className="text-muted-foreground">Cadastre uma nova loja no sistema.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Novo Fornecedor Parceiro</h1>
+          <p className="text-muted-foreground">Cadastre um novo fornecedor parceiro no sistema.</p>
         </div>
       </div>
 

@@ -53,6 +53,13 @@ const sidebarNavItems: sidebarNavItems[] = [
     icon: PartyPopper,
   },
   {
+    title: "Amante de Decoração",
+    disabled: true,
+    tooltip: "Em desenvolvimento",
+    href: "/amante-de-decoracao",
+    icon: PartyPopper,
+  },
+  {
     title: "Workshops",
     href: "/workshops",
     disabled: true,
