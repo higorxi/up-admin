@@ -33,8 +33,8 @@ export function Header() {
 
       <div className="flex-1" />
 
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon">
+      <div className="flex items-center gap-2" >
+        <Button variant="outline" size="icon" disabled>
           <Bell className="h-5 w-5" />
           <span className="sr-only">Notificações</span>
         </Button>

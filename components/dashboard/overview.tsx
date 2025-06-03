@@ -6,32 +6,32 @@ const data = [
   {
     name: "Jan",
     profissionais: 12,
-    usuarios: 220,
+    fornecedores: 220,
   },
   {
     name: "Fev",
     profissionais: 18,
-    usuarios: 380,
+    fornecedores: 380,
   },
   {
     name: "Mar",
     profissionais: 15,
-    usuarios: 290,
+    fornecedores: 290,
   },
   {
     name: "Abr",
     profissionais: 22,
-    usuarios: 430,
+    fornecedores: 430,
   },
   {
     name: "Mai",
     profissionais: 28,
-    usuarios: 510,
+    fornecedores: 510,
   },
   {
     name: "Jun",
     profissionais: 25,
-    usuarios: 590,
+    fornecedores: 590,
   },
 ]
 
@@ -43,7 +43,7 @@ export function Overview() {
         <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
         <Tooltip />
         <Bar dataKey="profissionais" fill="#adfa1d" radius={[4, 4, 0, 0]} name="Profissionais" />
-        <Bar dataKey="usuarios" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Usuários" />
+        <Bar dataKey="fornecedores" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Usuários" />
       </BarChart>
     </ResponsiveContainer>
   )

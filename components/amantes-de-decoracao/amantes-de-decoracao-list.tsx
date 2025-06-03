@@ -57,7 +57,7 @@ import {
 import { lojasService } from "@/services/fornecedores-parceiros";
 import Loading from "../loading";
 
-export function PartnerSuppliersList() {
+export function AmantesDeDecoracaoList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [partnerSuppliers, setPartnerSuppliers] = useState<PartnerSuppliers>(
     []
@@ -153,7 +153,7 @@ export function PartnerSuppliersList() {
   };
 
   if (loading) {
-    return <Loading text="Carregando fornecedores parceiros..." />;
+    return <Loading text="Carregando amantes de decoração..." />;
   }
 
   return (
@@ -190,7 +190,7 @@ export function PartnerSuppliersList() {
             {filteredPartners.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
-                  Nenhum fornecedor parceiro encontrado.
+                  Nenhum amante de decoração encontrado.
                 </TableCell>
               </TableRow>
             ) : (

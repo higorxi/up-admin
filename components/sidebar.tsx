@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -10,85 +9,88 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import {
   LayoutDashboard,
-  Store,
-  UserCheck,
   Settings,
   LogOut,
-  FileText,
-  PartyPopper,
-  User2Icon,
-  Presentation,
-  Handshake,
   LucideIcon,
+  Building2,
+  Calendar,
+  CheckCircle,
+  FolderOpen,
+  Gift,
+  GraduationCap,
+  Palette,
+  UserCheck2,
+  Users,
 } from "lucide-react";
-import { IconType } from "recharts/types/component/DefaultLegendContent";
 
 interface sidebarNavItems {
-  title: string,
-  href: string,
-  icon: LucideIcon,
-  disabled?: boolean,
-  tooltip?: string,
+  title: string;
+  href: string;
+  icon: LucideIcon;
+  disabled?: boolean;
+  tooltip?: string;
   subItems?: sidebarNavItems[];
 }
 const sidebarNavItems: sidebarNavItems[] = [
   {
     title: "Dashboard",
-    href: "/dashboard", 
+    href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
     title: "Profissionais",
     href: "/profissionais",
-    icon: UserCheck,
+    icon: Users,
   },
   {
     title: "Fornecedores Parceiros",
     href: "/fornecedores-parceiros",
-    icon: Store,
+    icon: Building2,
+  },
+  {
+    title: "Amante de Decoração",
+    tooltip: "Em desenvolvimento",
+    href: "/amantes-de-decoracao",
+    icon: Palette,
   },
   {
     title: "Profissionais Indicados",
     href: "/profissionais-indicados",
-    icon: PartyPopper,
-  },
-  {
-    title: "Amante de Decoração",
-    disabled: true,
-    tooltip: "Em desenvolvimento",
-    href: "/amante-de-decoracao",
-    icon: PartyPopper,
+    icon: UserCheck2,
   },
   {
     title: "Workshops",
     href: "/workshops",
-    disabled: true,
     tooltip: "Em breve disponível",
-    icon: Presentation,
+    icon: GraduationCap,
   },
   {
     title: "Eventos",
     href: "/eventos",
-    disabled: true,
     tooltip: "Em breve disponível",
-    icon: Handshake,
+    icon: Calendar,
+  },
+  {
+    title: "Beneficios",
+    href: "/beneficios",
+    tooltip: "Em breve disponível",
+    icon: Gift,
   },
   {
     title: "Cadastros",
     href: "/profissionais/aprovacao",
-    icon: FileText,
+    icon: FolderOpen,
     subItems: [
       {
         title: "Aprovações",
         href: "/profissionais/aprovacao",
-        icon: User2Icon,
+        icon: CheckCircle,
       },
     ],
   },
   {
     title: "Configurações",
     href: "/configuracoes",
-    disabled: true,
     tooltip: "Em breve disponível",
     icon: Settings,
   },
@@ -187,10 +189,12 @@ export function Sidebar() {
           </nav>
         </ScrollArea>
         <div className="border-t p-4">
-          <Button variant="outline" className="w-full justify-start gap-2">
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
+          <Link href={"/login"}>
+            <Button variant="outline" className="w-full justify-start gap-2">
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

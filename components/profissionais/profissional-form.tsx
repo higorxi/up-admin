@@ -1,20 +1,34 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
-import { profissionaisService } from "@/services/profissionais-service"
-import { useRouter } from "next/navigation"
-import { toast } from "@/components/ui/use-toast"
-import { Checkbox } from "@/components/ui/checkbox"
-import { lojasService } from "@/services/lojas-service"
+import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { profissionaisService } from "@/services/profissionais-service";
+import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { lojasService } from "@/services/fornecedores-parceiros";
 
 const formSchema = z.object({
   nome: z.string().min(3, {
@@ -57,13 +71,13 @@ const formSchema = z.object({
       message: "Estado é obrigatório.",
     }),
   }),
-})
+});
 
 export function ProfissionalForm({ id }: { id?: string }) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [lojas, setLojas] = useState([])
-  const [loadingLojas, setLoadingLojas] = useState(false)
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [lojas, setLojas] = useState([]);
+  const [loadingLojas, setLoadingLojas] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -87,29 +101,30 @@ export function ProfissionalForm({ id }: { id?: string }) {
         estado: "",
       },
     },
-  })
+  });
 
-  const isIndicado = form.watch("indicado")
+  const isIndicado = form.watch("indicado");
 
   useEffect(() => {
     const carregarLojas = async () => {
-      setLoadingLojas(true)
+      setLoadingLojas(true);
       try {
-        const data = await lojasService.listarLojas()
-        setLojas(data.filter((loja) => loja.status === "Ativa"))
+        const data = await lojasService.listarLojas();
+        setLojas(data.filter((loja) => loja.status === "Ativa"));
       } catch (error) {
-        console.error("Erro ao carregar lojas:", error)
+        console.error("Erro ao carregar lojas:", error);
       } finally {
-        setLoadingLojas(false)
+        setLoadingLojas(false);
       }
-    }
+    };
 
-    carregarLojas()
+    carregarLojas();
 
     if (id) {
       const carregarProfissional = async () => {
         try {
-          const profissional = await profissionaisService.obterProfissionalPorId(id)
+          const profissional =
+            await profissionaisService.obterProfissionalPorId(id);
           if (profissional) {
             form.reset({
               nome: profissional.nome,
@@ -130,52 +145,53 @@ export function ProfissionalForm({ id }: { id?: string }) {
                 cidade: "",
                 estado: "",
               },
-            })
+            });
           }
         } catch (error) {
           toast({
             title: "Erro",
             description: "Não foi possível carregar os dados do profissional.",
             variant: "destructive",
-          })
+          });
         }
-      }
+      };
 
-      carregarProfissional()
+      carregarProfissional();
     }
-  }, [id, form])
+  }, [id, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setLoading(true)
+    setLoading(true);
     try {
       if (id) {
-        await profissionaisService.atualizarProfissional(id, values)
+        await profissionaisService.atualizarProfissional(id, values);
         toast({
           title: "Profissional atualizado",
-          description: "As informações do profissional foram atualizadas com sucesso.",
-        })
+          description:
+            "As informações do profissional foram atualizadas com sucesso.",
+        });
       } else {
-        await profissionaisService.cadastrarProfissional(values)
+        await profissionaisService.cadastrarProfissional(values);
         toast({
           title: "Profissional cadastrado",
           description: "O profissional foi cadastrado com sucesso.",
-        })
+        });
       }
-      router.push("/profissionais")
+      router.push("/profissionais");
     } catch (error) {
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao salvar o profissional.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   // Função para buscar endereço pelo CEP
   const buscarEnderecoPorCep = async (cep: string) => {
-    if (cep.length < 8) return
+    if (cep.length < 8) return;
 
     try {
       // Simulando busca de CEP - em produção, use uma API real
@@ -185,16 +201,16 @@ export function ProfissionalForm({ id }: { id?: string }) {
       // Simulando resposta para desenvolvimento
       setTimeout(() => {
         if (cep === "12345678") {
-          form.setValue("endereco.rua", "Avenida Exemplo")
-          form.setValue("endereco.bairro", "Centro")
-          form.setValue("endereco.cidade", "São Paulo")
-          form.setValue("endereco.estado", "SP")
+          form.setValue("endereco.rua", "Avenida Exemplo");
+          form.setValue("endereco.bairro", "Centro");
+          form.setValue("endereco.cidade", "São Paulo");
+          form.setValue("endereco.estado", "SP");
         }
-      }, 500)
+      }, 500);
     } catch (error) {
-      console.error("Erro ao buscar CEP:", error)
+      console.error("Erro ao buscar CEP:", error);
     }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -247,7 +263,10 @@ export function ProfissionalForm({ id }: { id?: string }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Especialidade</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione uma especialidade" />
@@ -256,8 +275,12 @@ export function ProfissionalForm({ id }: { id?: string }) {
                       <SelectContent>
                         <SelectItem value="Médico">Médico</SelectItem>
                         <SelectItem value="Dentista">Dentista</SelectItem>
-                        <SelectItem value="Fisioterapeuta">Fisioterapeuta</SelectItem>
-                        <SelectItem value="Nutricionista">Nutricionista</SelectItem>
+                        <SelectItem value="Fisioterapeuta">
+                          Fisioterapeuta
+                        </SelectItem>
+                        <SelectItem value="Nutricionista">
+                          Nutricionista
+                        </SelectItem>
                         <SelectItem value="Psicólogo">Psicólogo</SelectItem>
                         <SelectItem value="Outro">Outro</SelectItem>
                       </SelectContent>
@@ -285,7 +308,10 @@ export function ProfissionalForm({ id }: { id?: string }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Loja</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione uma loja (opcional)" />
@@ -308,7 +334,9 @@ export function ProfissionalForm({ id }: { id?: string }) {
                         )}
                       </SelectContent>
                     </Select>
-                    <FormDescription>Associe o profissional a uma loja (opcional)</FormDescription>
+                    <FormDescription>
+                      Associe o profissional a uma loja (opcional)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -322,10 +350,15 @@ export function ProfissionalForm({ id }: { id?: string }) {
                 <FormItem className="mt-6">
                   <FormLabel>Biografia</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Informações sobre o profissional" className="min-h-[120px]" {...field} />
+                    <Textarea
+                      placeholder="Informações sobre o profissional"
+                      className="min-h-[120px]"
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
-                    Breve descrição sobre a experiência e qualificações do profissional.
+                    Breve descrição sobre a experiência e qualificações do
+                    profissional.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -339,11 +372,17 @@ export function ProfissionalForm({ id }: { id?: string }) {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       <FormLabel>Profissional Indicado</FormLabel>
-                      <FormDescription>Marque esta opção se o profissional foi indicado por alguém.</FormDescription>
+                      <FormDescription>
+                        Marque esta opção se o profissional foi indicado por
+                        alguém.
+                      </FormDescription>
                     </div>
                   </FormItem>
                 )}
@@ -360,7 +399,8 @@ export function ProfissionalForm({ id }: { id?: string }) {
                         <Input placeholder="Nome de quem indicou" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Informe o nome da pessoa ou entidade que indicou este profissional.
+                        Informe o nome da pessoa ou entidade que indicou este
+                        profissional.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -386,8 +426,10 @@ export function ProfissionalForm({ id }: { id?: string }) {
                         placeholder="00000-000"
                         {...field}
                         onChange={(e) => {
-                          field.onChange(e)
-                          buscarEnderecoPorCep(e.target.value.replace(/\D/g, ""))
+                          field.onChange(e);
+                          buscarEnderecoPorCep(
+                            e.target.value.replace(/\D/g, "")
+                          );
                         }}
                       />
                     </FormControl>
@@ -466,7 +508,10 @@ export function ProfissionalForm({ id }: { id?: string }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Estado</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione um estado" />
@@ -511,7 +556,11 @@ export function ProfissionalForm({ id }: { id?: string }) {
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Button variant="outline" type="button" onClick={() => router.push("/profissionais")}>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => router.push("/profissionais")}
+          >
             Cancelar
           </Button>
           <Button type="submit" disabled={loading}>
@@ -520,5 +569,5 @@ export function ProfissionalForm({ id }: { id?: string }) {
         </div>
       </form>
     </Form>
-  )
+  );
 }

@@ -69,7 +69,7 @@ const formSchema = z.object({
   }),
 });
 
-export function LojaForm({ id }: { id?: string }) {
+export function AmantesDeDecoracaoForm({ id }: { id?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 

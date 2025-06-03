@@ -131,7 +131,7 @@ class LojasService {
   async listarFornecedoresParceiros(): Promise<any[]> {
     try {
       // Quando a API estiver pronta, descomente o código abaixo
-      const fornecedoresParceiros = await apiClient.get<any[]>('/partner-supplier');
+      const fornecedoresParceiros = await apiClient.get<any[]>('/partner-suppliers');
 
       // Usando dados mockados para desenvolvimento
       return fornecedoresParceiros;
@@ -144,7 +144,7 @@ class LojasService {
   // Obter loja por ID
   async obterFornecedorParceiroPorId(id: string): Promise<any> {
     try {
-      const fornecedorParceiro = await apiClient.get<any[]>(`/partner-supplier/${id}`);
+      const fornecedorParceiro = await apiClient.get<any[]>(`/partner-suppliers/${id}`);
 
       // Usando dados mockados para desenvolvimento
       return fornecedorParceiro;
@@ -188,7 +188,7 @@ class LojasService {
   async listarLojasParceirasPendentes(): Promise<FornecedorParceiro[]> {
     try {
       const response = await apiClient.get<FornecedorParceiro[]>(
-        "/partner-supplier/pending"
+        "/partner-suppliers/pending"
       );
       return response;
     } catch (error) {
@@ -207,7 +207,7 @@ class LojasService {
         accessPending,
       };
       const lojaAtualizada = await apiClient.put<FornecedorParceiro>(
-        `/partner-supplier/pending/${id}`,
+        `/partner-suppliers/pending/${id}`,
         data
       );
 
