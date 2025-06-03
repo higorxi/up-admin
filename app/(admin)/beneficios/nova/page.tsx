@@ -1,4 +1,4 @@
-import { LojaForm } from "@/components/lojas/loja-form"
+import { BeneficiosForm } from "@/components/beneficios/beneficios-form"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
@@ -13,12 +13,12 @@ export default function NovaLojaPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Novo Fornecedor Parceiro</h1>
-          <p className="text-muted-foreground">Cadastre um novo fornecedor parceiro no sistema.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Novo Beneficios</h1>
+          <p className="text-muted-foreground">Cadastre um novo beneficio no sistema.</p>
         </div>
       </div>
 
-      <LojaForm />
+      <BeneficiosForm />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { PartnerSuppliersList } from "@/components/lojas/lojas-list";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link"
+import { EventosList } from "@/components/eventos/eventos-list";
 
 export default function LojasPage() {
   return (
@@ -23,7 +24,7 @@ export default function LojasPage() {
           </Link>
         </Button>
       </div>
-      <PartnerSuppliersList />
+      <EventosList />
     </div>
   );
 }
