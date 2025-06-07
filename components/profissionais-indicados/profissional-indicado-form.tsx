@@ -16,26 +16,34 @@ import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
 import { motion } from "framer-motion"
 import { UserPlus, MapPin, User, Link as LinkIcon } from "lucide-react"
-import diasDaSemana from "@/lib/utils"
 
 const formSchema = z.object({
-  name: z.string().min(3, {
-    message: "O nome deve ter pelo menos 3 caracteres.",
-  }),
+  // Dados do usuário
   email: z.string().email({
     message: "Email inválido.",
-  }).optional(),
-  phone: z.string().min(10, {
-    message: "Telefone inválido.",
+  }),
+  password: z.string().min(6, {
+    message: "A senha deve ter pelo menos 6 caracteres.",
+  }),
+  
+  // Dados do profissional
+  name: z.string().min(3, {
+    message: "O nome deve ter pelo menos 3 caracteres.",
   }),
   profession: z.string().min(1, {
     message: "Selecione uma profissão.",
   }),
+  document: z.string().optional(),
+  generalRegister: z.string().optional(),
+  registrationAgency: z.string().optional(),
   description: z.string().optional(),
-  indicadoPor: z.string().min(3, {
-    message: "Informe quem indicou este profissional.",
+  experience: z.string().optional(),
+  officeName: z.string().optional(),
+  phone: z.string().min(10, {
+    message: "Telefone inválido.",
   }),
-  lojaId: z.string().optional(),
+  
+  // Dados de endereço
   zipCode: z.string().optional(),
   street: z.string().optional(),
   number: z.string().optional(),
@@ -49,6 +57,11 @@ const formSchema = z.object({
   state: z.string().min(2, {
     message: "Estado é obrigatório.",
   }),
+  
+  // Campos adicionais (não enviados para o backend)
+  indicadoPor: z.string().min(3, {
+    message: "Informe quem indicou este profissional.",
+  }),
   socialMedia: z.object({
     instagram: z.string().optional(),
     linkedin: z.string().optional(),
@@ -56,6 +69,17 @@ const formSchema = z.object({
   }),
   availableDays: z.array(z.string()).optional(),
 })
+
+// Dias da semana
+const diasDaSemana = [
+  { id: "segunda", label: "Segunda-feira" },
+  { id: "terca", label: "Terça-feira" },
+  { id: "quarta", label: "Quarta-feira" },
+  { id: "quinta", label: "Quinta-feira" },
+  { id: "sexta", label: "Sexta-feira" },
+  { id: "sabado", label: "Sábado" },
+  { id: "domingo", label: "Domingo" },
+]
 
 export function ProfissionalIndicadoForm() {
   const router = useRouter()
@@ -65,13 +89,22 @@ export function ProfissionalIndicadoForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      // Dados do usuário
       email: "",
-      phone: "",
+      password: "",
+      
+      // Dados do profissional
+      name: "",
       profession: "",
+      document: "",
+      generalRegister: "",
+      registrationAgency: "",
       description: "",
-      indicadoPor: "",
-      lojaId: "",
+      experience: "",
+      officeName: "",
+      phone: "",
+      
+      // Dados de endereço
       zipCode: "",
       street: "",
       number: "",
@@ -79,6 +112,9 @@ export function ProfissionalIndicadoForm() {
       district: "",
       city: "",
       state: "",
+      
+      // Campos adicionais
+      indicadoPor: "",
       socialMedia: {
         instagram: "",
         linkedin: "",
@@ -94,26 +130,33 @@ export function ProfissionalIndicadoForm() {
 
     setCepBuscando(true)
     try {
-      // Simulando busca de CEP - em produção, use uma API real
-      // const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      // const data = await response.json();
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+      const data = await response.json()
 
-      // Simulando resposta para desenvolvimento
-      setTimeout(() => {
-        if (cep === "12345678") {
-          form.setValue("street", "Avenida Exemplo")
-          form.setValue("district", "Centro")
-          form.setValue("city", "São Paulo")
-          form.setValue("state", "SP")
-          toast({
-            title: "CEP encontrado",
-            description: "Endereço preenchido automaticamente.",
-          })
-        }
-        setCepBuscando(false)
-      }, 800)
+      if (!data.erro) {
+        form.setValue("street", data.logradouro || "")
+        form.setValue("district", data.bairro || "")
+        form.setValue("city", data.localidade || "")
+        form.setValue("state", data.uf || "")
+        toast({
+          title: "CEP encontrado",
+          description: "Endereço preenchido automaticamente.",
+        })
+      } else {
+        toast({
+          title: "CEP não encontrado",
+          description: "Verifique o CEP informado.",
+          variant: "destructive",
+        })
+      }
     } catch (error) {
       console.error("Erro ao buscar CEP:", error)
+      toast({
+        title: "Erro ao buscar CEP",
+        description: "Tente novamente ou preencha manualmente.",
+        variant: "destructive",
+      })
+    } finally {
       setCepBuscando(false)
     }
   }
@@ -121,46 +164,57 @@ export function ProfissionalIndicadoForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true)
     try {
-      // Formatar os dados para o DTO - removendo campos que não existem no modelo Prisma
-      const dadosProfissional = {
+      // Preparar dados no formato esperado pelo endpoint
+      const professionalData = {
         name: values.name,
         profession: values.profession,
-        description: values.description,
+        document: values.document || undefined,
+        generalRegister: values.generalRegister || undefined,
+        registrationAgency: values.registrationAgency || undefined,
+        description: values.description || undefined,
+        experience: values.experience || undefined,
+        officeName: values.officeName || undefined,
         phone: values.phone,
-        email: values.email,
-        
-        // Dados de endereço
-        state: values.state,
-        city: values.city,
-        district: values.district,
-        street: values.street,
-        number: values.number,
-        complement: values.complement,
-        zipCode: values.zipCode,
-        
-        // Redes sociais
-        socialMedia: {
-          instagram: values.socialMedia.instagram,
-          linkedin: values.socialMedia.linkedin,
-          whatsapp: values.socialMedia.whatsapp,
-        },
-        
-        // Dias disponíveis
-        availableDays: values.availableDays,
-        
-        // Armazene dados adicionais em localStorage ou contexto para referência futura
-        // Não enviamos estes campos ao backend pois não existem no modelo Prisma
-        // indicadoPor: values.indicadoPor,
-        // lojaId: values.lojaId,
+        verified: false,
+        featured: false,
       }
 
-      await profissionaisService.cadastrarProfissionalIndicado(dadosProfissional)
+      const userData = {
+        email: values.email,
+        password: values.password,
+        address: {
+          zipCode: values.zipCode || undefined,
+          street: values.street || undefined,
+          number: values.number || undefined,
+          complement: values.complement || undefined,
+          district: values.district,
+          city: values.city,
+          state: values.state,
+        }
+      }
+
+      // Estrutura final que será enviada para o endpoint
+      const payload = {
+        professional: professionalData,
+        user: userData,
+        // Dados adicionais que podem ser armazenados localmente ou em outro serviço
+        metadata: {
+          indicadoPor: values.indicadoPor,
+          socialMedia: values.socialMedia,
+          availableDays: values.availableDays,
+        }
+      }
+
+      await profissionaisService.cadastrarProfissionalIndicado(payload)
+      
       toast({
         title: "Profissional indicado cadastrado",
         description: "O profissional indicado foi cadastrado com sucesso.",
       })
+      
       router.push("/profissionais/indicados")
     } catch (error) {
+      console.error("Erro ao cadastrar profissional:", error)
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao cadastrar o profissional indicado.",
@@ -203,10 +257,26 @@ export function ProfissionalIndicadoForm() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email (opcional)</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input placeholder="email@exemplo.com" {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Senha de acesso" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Senha para acesso do profissional ao sistema
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -251,6 +321,61 @@ export function ProfissionalIndicadoForm() {
                 />
               </div>
 
+              <div className="grid gap-6 md:grid-cols-2 mt-6">
+                <FormField
+                  control={form.control}
+                  name="document"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Documento (CPF/CNPJ) - Opcional</FormLabel>
+                      <FormControl>
+                        <Input placeholder="000.000.000-00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="generalRegister"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Registro Profissional - Opcional</FormLabel>
+                      <FormControl>
+                        <Input placeholder="CRM, CRO, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="registrationAgency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Órgão do Registro - Opcional</FormLabel>
+                      <FormControl>
+                        <Input placeholder="CRM-SP, CRO-RJ, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="officeName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Consultório - Opcional</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome da clínica/consultório" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name="description"
@@ -262,6 +387,23 @@ export function ProfissionalIndicadoForm() {
                     </FormControl>
                     <FormDescription>
                       Breve descrição sobre a experiência e qualificações do profissional.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="experience"
+                render={({ field }) => (
+                  <FormItem className="mt-6">
+                    <FormLabel>Experiência - Opcional</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Experiência profissional detalhada" className="min-h-[120px]" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Informações detalhadas sobre a experiência do profissional.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -299,7 +441,10 @@ export function ProfissionalIndicadoForm() {
                             {...field}
                             onChange={(e) => {
                               field.onChange(e)
-                              buscarEnderecoPorCep(e.target.value.replace(/\D/g, ""))
+                              const cep = e.target.value.replace(/\D/g, "")
+                              if (cep.length === 8) {
+                                buscarEnderecoPorCep(cep)
+                              }
                             }}
                             className={cepBuscando ? "pr-10" : ""}
                           />

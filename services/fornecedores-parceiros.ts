@@ -141,6 +141,20 @@ class LojasService {
     }
   }
 
+    // Listar todas as lojas
+    async listarFornecedoresParceiros1(): Promise<any[]> {
+      try {
+        // Quando a API estiver pronta, descomente o código abaixo
+        const fornecedoresParceiros = await apiClient.get<any[]>('/love-decorations');
+  
+        // Usando dados mockados para desenvolvimento
+        return fornecedoresParceiros;
+      } catch (error) {
+        console.error("Erro ao listar lojas:", error);
+        throw error;
+      }
+    }
+
   // Obter loja por ID
   async obterFornecedorParceiroPorId(id: string): Promise<any> {
     try {
@@ -188,7 +202,7 @@ class LojasService {
   async listarLojasParceirasPendentes(): Promise<FornecedorParceiro[]> {
     try {
       const response = await apiClient.get<FornecedorParceiro[]>(
-        "/partner-suppliers/pending"
+        "/recommended-professionals/pending"
       );
       return response;
     } catch (error) {

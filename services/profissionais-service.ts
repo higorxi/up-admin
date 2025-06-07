@@ -224,7 +224,7 @@ class ProfissionaisService {
 
   async cadastrarProfissionalIndicado(dados: Partial<ProfissionalIndicado>): Promise<ProfissionalIndicado> {
     try {
-      const response = await apiClient.post<ProfissionalIndicado>('/listed-professionals', dados);
+      const response = await apiClient.post<ProfissionalIndicado>('/recommended-professionals', dados);
 
       return response
     } catch (error) {

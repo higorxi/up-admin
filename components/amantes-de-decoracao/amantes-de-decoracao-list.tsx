@@ -24,10 +24,10 @@ import {
   Search,
   Edit,
   Trash,
-  MapPin,
-  Users,
+  Instagram,
+  Music,
+  Phone,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import {
@@ -40,40 +40,36 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  PartnerSuppliers,
-  Professional,
-  PartnerSupplier,
-  mapPartnerSupplierToDisplayData,
-} from "@/types/Fornecedor-Parceiro/FornecedorParceiro";
 import { lojasService } from "@/services/fornecedores-parceiros";
 import Loading from "../loading";
 
+// Interface para o novo formato de retorno
+interface AmanteDeDecoracao {
+  id: string;
+  name: string;
+  contact: string;
+  instagram: string;
+  tiktok: string;
+}
+
+type AmantesDeDecoracao = AmanteDeDecoracao[];
+
 export function AmantesDeDecoracaoList() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [partnerSuppliers, setPartnerSuppliers] = useState<PartnerSuppliers>(
-    []
-  );
+  const [amantesDeDecoracao, setAmantesDeDecoracao] = useState<AmantesDeDecoracao>([]);
   const [loading, setLoading] = useState(true);
-  const [partnerToDelete, setPartnerToDelete] = useState<string | null>(null);
+  const [amanteToDelete, setAmanteToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadPartnerSuppliers = async () => {
+    const loadAmantesDeDecoracao = async () => {
       try {
-        const data = await lojasService.listarFornecedoresParceiros();
-        setPartnerSuppliers(data);
+        const data = await lojasService.listarFornecedoresParceiros1();
+        setAmantesDeDecoracao(data);
       } catch (error) {
         toast({
           title: "Erro",
-          description: "Não foi possível carregar os fornecedores parceiros.",
+          description: "Não foi possível carregar os amantes de decoração.",
           variant: "destructive",
         });
       } finally {
@@ -81,74 +77,38 @@ export function AmantesDeDecoracaoList() {
       }
     };
 
-    loadPartnerSuppliers();
+    loadAmantesDeDecoracao();
   }, []);
 
-  const filteredPartners = partnerSuppliers.filter((partner) => {
-    const displayData = mapPartnerSupplierToDisplayData(partner);
+  const filteredAmantes = amantesDeDecoracao.filter((amante) => {
     return (
-      displayData.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      displayData.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      displayData.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.document.includes(searchTerm)
+      amante.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      amante.contact.includes(searchTerm) ||
+      amante.instagram.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      amante.tiktok.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
   const handleDelete = async () => {
-    if (!partnerToDelete) return;
+    if (!amanteToDelete) return;
 
     try {
-      await lojasService.deletePartnerSupplier(partnerToDelete);
-      setPartnerSuppliers(
-        partnerSuppliers.filter((p) => p.id !== partnerToDelete)
+      await lojasService.deletePartnerSupplier(amanteToDelete);
+      setAmantesDeDecoracao(
+        amantesDeDecoracao.filter((amante) => amante.id !== amanteToDelete)
       );
       toast({
-        title: "Fornecedor excluído",
-        description: "O fornecedor parceiro foi excluído com sucesso.",
+        title: "Amante de decoração excluído",
+        description: "O amante de decoração foi excluído com sucesso.",
       });
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao excluir o fornecedor parceiro.",
+        description: "Ocorreu um erro ao excluir o amante de decoração.",
         variant: "destructive",
       });
     } finally {
-      setPartnerToDelete(null);
-    }
-  };
-
-  const handleToggleAccess = async (
-    partnerId: string,
-    currentStatus: boolean
-  ) => {
-    try {
-      if (currentStatus) {
-        await lojasService.atualizarPendenciaFornecedor(partnerId, true);
-      } else {
-        await lojasService.atualizarPendenciaFornecedor(partnerId, false);
-      }
-
-      setPartnerSuppliers(
-        partnerSuppliers.map((partner) =>
-          partner.id === partnerId
-            ? { ...partner, accessPending: !currentStatus }
-            : partner
-        )
-      );
-
-      toast({
-        title: `Acesso ${!currentStatus ? "concedido" : "revogado"}`,
-        description: `O acesso foi ${
-          !currentStatus ? "concedido" : "revogado"
-        } com sucesso.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao alterar o status de acesso.",
-        variant: "destructive",
-      });
+      setAmanteToDelete(null);
     }
   };
 
@@ -163,157 +123,112 @@ export function AmantesDeDecoracaoList() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Buscar fornecedores parceiros..."
+            placeholder="Buscar amantes de decoração..."
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/profissionais/aprovacao">Pendentes de Aprovação</Link>
-        </Button>
       </div>
 
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Fornecedor</TableHead>
-              <TableHead>Loja</TableHead>
-              <TableHead>Localização</TableHead>
-              <TableHead>Status de Acesso</TableHead>
-              <TableHead>Avaliação</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Contato</TableHead>
+              <TableHead>Instagram</TableHead>
+              <TableHead>TikTok</TableHead>
               <TableHead className="w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredPartners.length === 0 ? (
+            {filteredAmantes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   Nenhum amante de decoração encontrado.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredPartners.map((partner) => {
-                const displayData = mapPartnerSupplierToDisplayData(partner);
-                return (
-                  <TableRow key={partner.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage
-                            src={partner.profileImage || "/placeholder.svg"}
-                            alt={displayData.name}
-                          />
-                          <AvatarFallback>
-                            {displayData.name.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span className="font-medium">
-                            {displayData.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {partner.companyName}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {partner.document}
-                          </span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
+              filteredAmantes.map((amante) => (
+                <TableRow key={amante.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src="/placeholder.svg"
+                          alt={amante.name}
+                        />
+                        <AvatarFallback>
+                          {amante.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="flex flex-col">
                         <span className="font-medium">
-                          {partner.store?.name || "Sem loja"}
+                          {amante.name}
                         </span>
-                        {partner.store?.website && (
-                          <a
-                            href={partner.store.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline"
-                          >
-                            {partner.store.website}
-                          </a>
-                        )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {partner.store ? (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">
-                            {partner.store.address.city},{" "}
-                            {partner.store.address.state}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">
-                          Sem endereço
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={partner.accessPending ? "warning" : "success"}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{amante.contact}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`https://instagram.com/${amante.instagram.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
                       >
-                        {partner.accessPending ? "Pendente" : "Liberado"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {partner.store ? (
-                        <div className="flex items-center gap-1">
-                          <span className="text-yellow-500">★</span>
-                          <span>{partner.store.rating.toFixed(1)}</span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Abrir menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem asChild>
-                            <Link href={`/partner-suppliers/${partner.id}`}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleToggleAccess(
-                                partner.id,
-                                !partner.accessPending
-                              )
-                            }
-                          >
-                            {partner.accessPending
-                              ? "Liberar acesso"
-                              : "Revogar acesso"}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => setPartnerToDelete(partner.id)}
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
+                        @{amante.instagram.replace('@', '')}
+                      </a>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`https://tiktok.com/@${amante.tiktok.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        @{amante.tiktok.replace('@', '')}
+                      </a>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Abrir menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href={`/amantes-decoracao/${amante.id}`}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => setAmanteToDelete(amante.id)}
+                        >
+                          <Trash className="mr-2 h-4 w-4" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
@@ -321,14 +236,14 @@ export function AmantesDeDecoracaoList() {
 
       {/* Dialog de confirmação de exclusão */}
       <AlertDialog
-        open={!!partnerToDelete}
-        onOpenChange={(open) => !open && setPartnerToDelete(null)}
+        open={!!amanteToDelete}
+        onOpenChange={(open) => !open && setAmanteToDelete(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este fornecedor parceiro? Esta ação
+              Tem certeza que deseja excluir este amante de decoração? Esta ação
               não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>

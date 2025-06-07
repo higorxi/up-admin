@@ -31,6 +31,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { motion } from "framer-motion"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { lojasService } from "@/services/fornecedores-parceiros"
 
 export function CadastrosList() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -44,7 +45,7 @@ export function CadastrosList() {
   useEffect(() => {
     const carregarCadastros = async () => {
       try {
-        const data = await cadastrosService.listarCadastros()
+        const data = await lojasService.listarLojasParceirasPendentes()
         setCadastros(data)
       } catch (error) {
         toast({
